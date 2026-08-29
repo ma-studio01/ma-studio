@@ -1266,7 +1266,7 @@ function registerEmail() {
 function loginDiscord() {
   const clientId = localStorage.getItem('mas_discord_client_id') || '';
   if (clientId) {
-    const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+    const redirectUri = encodeURIComponent('https://mastudio-app.pages.dev');
     const scope = encodeURIComponent('identify email');
     window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=token&scope=' + scope;
   } else {
