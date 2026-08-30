@@ -1665,13 +1665,7 @@ async function fetchYouTubeMeta(url) {
       if (res.ok) { const d = await res.json(); title = d.title || title; author = d.author_name || ''; }
     } catch(e) {}
     showNotif('info', 'Cobalt belum disetup', 'Tambahkan URL Railway kamu di Settings -> Roblox -> Cobalt API untuk bisa play/download YouTube.');
-    return {
-      id: Date.now() + Math.random(),
-      name: title, source: author || 'YouTube', format: 'Stream', size: '-',
-      url: null, duration, cover: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
-      platform: 'youtube', originalUrl: `https://www.youtube.com/watch?v=${videoId}`,
-      cobaltResolved: false
-    };
+    
   }
 
   // 1. Get title via oEmbed
