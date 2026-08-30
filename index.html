@@ -1988,6 +1988,8 @@ function togglePlay() {
         if (ct) ct.textContent = fmtTime(cur);
         if (tt) tt.textContent = fmtTime(isFinite(dur) ? dur : 0);
         if (pf) pf.style.width = (cur / dur * 100) + '%';
+        const ph = document.getElementById('playhead');
+        if (ph) ph.style.left = (cur / dur * 100) + '%';
         requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
@@ -2082,10 +2084,78 @@ function loopToggle() {
 }
 
 // Effects
-function setEQ(type, val) { document.getElementById(type+'-val').textContent = val; }
-function setPitch(val) { document.getElementById('pitch-val').textContent = val; }
-function setSpeed(val) { document.getElementById('speed-val').textContent = parseFloat(val).toFixed(1); if (audioSource) audioSource.playbackRate.value = parseFloat(val); }
-function setEffect(type, val) { document.getElementById(type+'-val').textContent = val; }
+// Web Audio nodes untuk stream
+let streamCtx = null;
+let streamSource = null;
+let bassFilter = null;
+let midFilter = null;
+let trebleFilter = null;
+let gainNode = null;
+let reverbNode = null;
+
+function setupStreamAudio(audio) {
+  if (!streamCtx) {
+    streamCtx = new (window.AudioContext || window.webkitAudioContext)();
+    streamSource = streamCtx.createMediaElementSource(audio);
+    // EQ Filters
+    bassFilter = streamCtx.createBiquadFilter();
+    bassFilter.type = 'lowshelf'; bassFilter.frequency.value = 200;
+    midFilter = streamCtx.createBiquadFilter();
+    midFilter.type = 'peaking'; midFilter.frequency.value = 1000;
+    trebleFilter = streamCtx.createBiquadFilter();
+    trebleFilter.type = 'highshelf'; trebleFilter.frequency.value = 4000;
+    gainNode = streamCtx.createGain();
+    // Chain: source -> bass -> mid -> treble -> gain -> output
+    streamSource.connect(bassFilter);
+    bassFilter.connect(midFilter);
+    midFilter.connect(trebleFilter);
+    trebleFilter.connect(gainNode);
+    gainNode.connect(streamCtx.destination);
+  }
+}
+
+function setEQ(type, val) {
+  document.getElementById(type+'-val').textContent = val;
+  if (audioBuffer === 'stream' && streamAudio) {
+    setupStreamAudio(streamAudio);
+    const gain = parseFloat(val);
+    if (type === 'bass' && bassFilter) bassFilter.gain.value = gain;
+    else if (type === 'mid' && midFilter) midFilter.gain.value = gain;
+    else if (type === 'treble' && trebleFilter) trebleFilter.gain.value = gain;
+  }
+}
+function setPitch(val) {
+  document.getElementById('pitch-val').textContent = val;
+  // Pitch untuk stream: pakai playbackRate sebagai approximasi
+  if (audioBuffer === 'stream' && streamAudio) {
+    const semitones = parseFloat(val);
+    streamAudio.playbackRate = Math.pow(2, semitones/12);
+  }
+}
+function setSpeed(val) {
+  document.getElementById('speed-val').textContent = parseFloat(val).toFixed(1);
+  if (audioSource) audioSource.playbackRate.value = parseFloat(val);
+  if (audioBuffer === 'stream' && streamAudio) streamAudio.playbackRate = parseFloat(val);
+}
+function setEffect(type, val) {
+  document.getElementById(type+'-val').textContent = val;
+  if (audioBuffer === 'stream' && streamAudio) {
+    setupStreamAudio(streamAudio);
+    const v = parseFloat(val) / 100;
+    if (type === 'reverb' && gainNode) gainNode.gain.value = 1 + v * 0.5;
+    if (type === 'compressor' && streamCtx) {
+      // Compressor via DynamicsCompressor
+      if (!streamCtx._compressor) {
+        streamCtx._compressor = streamCtx.createDynamicsCompressor();
+        gainNode.disconnect();
+        gainNode.connect(streamCtx._compressor);
+        streamCtx._compressor.connect(streamCtx.destination);
+      }
+      streamCtx._compressor.threshold.value = -50 * v;
+      streamCtx._compressor.ratio.value = 1 + 19 * v;
+    }
+  }
+}
 function resetEffects() {
   ['bass','mid','treble'].forEach(k => { document.getElementById(k+'-val').textContent = 0; });
   document.getElementById('pitch-val').textContent = 0;
@@ -2131,6 +2201,8 @@ async function downloadTrackById(i) {
 
   // YouTube: pakai YT Engine
   if (t.platform === 'youtube' && t.originalUrl) {
+    showNotif('info', 'Menyiapkan...', 'Menghubungi YT Engine...');
+    try { await fetch(YT_ENGINE, { signal: AbortSignal.timeout(8000) }); } catch(e) {}
     const dlUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
     const a = document.createElement('a');
     a.href = dlUrl;
