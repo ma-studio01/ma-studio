@@ -2061,35 +2061,76 @@ function downloadTrack() {
   showNotif('error', 'No Track', 'Select a track in the editor first.');
 }
 
-function downloadTrackById(i) {
+async function downloadTrackById(i) {
   const t = tracks[i];
   if (!t) { showNotif('error', 'No Track', 'Track not found.'); return; }
-  
-  // Spotify tidak bisa download; YouTube bisa via Cobalt
+
+  // Spotify tidak bisa download
   if (t.platform === 'spotify') {
     showNotif('info', 'Buka di Spotify', 'Membuka Spotify...');
     if (t.originalUrl) setTimeout(() => window.open(t.originalUrl, '_blank'), 500);
     return;
   }
-  if (!t.url) {
-    if (t.platform === 'youtube') {
-      showNotif('error', 'Gagal Ambil Audio', 'Cobalt tidak bisa ambil audio. Coba lagi atau buka di YouTube.');
-    } else {
-      showNotif('info', 'Tidak Bisa Download', 'Track stream butuh backend server untuk didownload.');
+
+  const name = (i === currentTrackIndex ? document.getElementById('export-name')?.value : null) || t.name || 'track';
+  const fmt = (document.getElementById('export-format')?.value || 'mp3').toLowerCase();
+
+  // YouTube: pakai Cobalt untuk dapat URL audio fresh
+  if (t.platform === 'youtube' && t.originalUrl) {
+    showNotif('info', 'Mengunduh...', 'Cobalt sedang ambil audio YouTube...');
+    try {
+      const cobaltUrl = (localStorage.getItem('mas_cobalt_url') || COBALT_API).replace(/\/$/, '') + '/';
+      const res = await fetch(cobaltUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ url: t.originalUrl, downloadMode: 'audio', audioFormat: fmt === 'mp3' ? 'mp3' : 'best' }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) throw new Error('Cobalt response: ' + res.status);
+      const data = await res.json();
+      let audioUrl = null;
+      if (data.status === 'tunnel' || data.status === 'redirect' || data.status === 'stream') {
+        audioUrl = data.url;
+      } else if (data.status === 'picker') {
+        audioUrl = (data.picker?.find(p => p.type === 'audio') || data.picker?.[0])?.url;
+      }
+      if (!audioUrl) throw new Error('No audio URL from Cobalt');
+
+      // Fetch blob lalu download (bypass CORS download restriction)
+      showNotif('info', 'Mengunduh...', 'Memproses file audio...');
+      const audioRes = await fetch(audioUrl);
+      if (!audioRes.ok) throw new Error('Gagal fetch audio');
+      const blob = await audioRes.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${name}.${fmt}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      exportCount++;
+      localStorage.setItem(userKey('exports'), exportCount);
+      document.getElementById('stat-exports').textContent = exportCount;
+      showNotif('success', 'Download Selesai!', `"${name}.${fmt}" berhasil diunduh`);
+    } catch(e) {
+      showNotif('error', 'Download Gagal', 'Cobalt error: ' + e.message + '. Pastikan Railway aktif.');
     }
-    if (t.originalUrl) setTimeout(() => window.open(t.originalUrl, '_blank'), 1000);
     return;
   }
-  
-  const name = (i === currentTrackIndex ? document.getElementById('export-name')?.value : null) || t.name;
-  const fmt = (document.getElementById('export-format')?.value || t.format?.toLowerCase() || 'mp3').toLowerCase();
-  const a = document.createElement('a'); 
-  a.href = t.url; 
-  a.download = `${name}.${fmt}`; 
+
+  // File lokal / direct URL
+  if (!t.url) {
+    showNotif('error', 'Tidak Ada File', 'Import ulang track ini untuk download.');
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = t.url;
+  a.download = `${name}.${fmt}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  exportCount++; 
+  exportCount++;
   localStorage.setItem(userKey('exports'), exportCount);
   document.getElementById('stat-exports').textContent = exportCount;
   showNotif('success', 'Download Dimulai', `"${name}.${fmt}" sedang didownload`);
@@ -2279,21 +2320,7 @@ function renderSettings(tab) {
     `,
     roblox: `
       <h3 style="font-size:.9rem;font-weight:700;margin-bottom:14px">Roblox Integration</h3>
-      <div class="setting-row" style="margin-bottom:0">
-        <div class="setting-info">
-          <h4>Cobalt API URL <span style="background:#5865F2;color:#fff;font-size:.6rem;padding:2px 7px;border-radius:10px;font-weight:700;vertical-align:middle">YOUTUBE</span></h4>
-          <p>URL Railway self-hosted Cobalt kamu. Deploy di <a href="https://railway.com/deploy/cobalt-youtube-downloader" target="_blank" style="color:rgba(255,255,255,.5)">railway.com</a>, lalu paste URL-nya di sini.</p>
-        </div>
-      </div>
-      <div style="margin-bottom:20px">
-        <input class="auth-input" id="cobalt-url-input" type="text" placeholder="https://cobalt-xxx.up.railway.app" value="${escHtml(localStorage.getItem('mas_cobalt_url')||'')}" style="font-family:monospace;font-size:.8rem;width:100%">
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn btn-solid" onclick="saveCobaltUrl()">Simpan</button>
-          <button class="btn btn-ghost" onclick="testCobaltUrl()">Test Koneksi</button>
-          ${localStorage.getItem('mas_cobalt_url') ? `<button class="btn btn-danger" onclick="localStorage.removeItem('mas_cobalt_url');renderSettings('roblox');showNotif('info','Dihapus','')">Hapus</button>` : ''}
-        </div>
-        <div id="cobalt-test-result" style="margin-top:8px;font-size:.75rem;display:none"></div>
-      </div>
+
       <div class="setting-row"><div class="setting-info"><h4>Roblox Open Cloud API Key</h4><p>Diperlukan untuk upload audio ke Roblox. Buat di <a href="https://create.roblox.com/credentials" target="_blank" style="color:rgba(255,255,255,.5)">create.roblox.com/credentials</a></p></div></div>
       <div style="margin-bottom:16px">
         <input class="auth-input" id="rblx-api-key-input" type="password" placeholder="rblx_..." value="${escHtml(localStorage.getItem('mas_rblx_api_key')||'')}" style="font-family:monospace;font-size:.8rem;width:100%">
