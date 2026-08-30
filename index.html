@@ -1671,50 +1671,21 @@ async function fetchYouTubeMeta(url) {
     title = 'YouTube Video - ' + videoId.slice(0,8);
   }
 
-  // 2. Cobalt self-hosted - minta audio MP3
-  try {
-    const endpoint = COBALT_API.replace(/\/$/, '') + '/';
-    const cobaltRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0',
-      },
-      body: JSON.stringify({
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-        downloadMode: 'audio',
-        audioFormat: 'mp3',
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
-
-    if (cobaltRes.ok) {
-      const cobaltData = await cobaltRes.json();
-      if (cobaltData.status === 'tunnel' || cobaltData.status === 'redirect' || cobaltData.status === 'stream') {
-        audioUrl = cobaltData.url;
-      } else if (cobaltData.status === 'picker') {
-        const audioItem = cobaltData.picker?.find(p => p.type === 'audio') || cobaltData.picker?.[0];
-        if (audioItem) audioUrl = audioItem.url;
-      }
-    }
-  } catch(e) {
-    console.warn('Cobalt failed:', e.message);
-    showNotif('error', 'Cobalt Gagal', 'Pastikan Railway instance kamu aktif dan URL benar.');
-  }
+  // 2. YT Engine - set stream URL langsung
+  audioUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
 
   return {
     id: Date.now() + Math.random(),
     name: title,
     source: author || 'YouTube',
-    format: audioUrl ? 'MP3' : 'Stream',
+    format: 'MP3',
     size: '-',
     url: audioUrl,
     duration,
     cover: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
     platform: 'youtube',
     originalUrl: `https://www.youtube.com/watch?v=${videoId}`,
-    cobaltResolved: !!audioUrl
+    cobaltResolved: true
   };
 }
 
