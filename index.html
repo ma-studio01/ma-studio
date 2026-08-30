@@ -699,85 +699,35 @@ input[type=range].full-range{width:100%}
         </div>
 
         <div class="editor-section">
-          <div class="section-title" style="margin-bottom:4px">EQ</div>
+          <div class="section-title" style="margin-bottom:0">Effects &amp; EQ</div>
           <div class="effects-grid">
-            <div class="effect-group">
-              <div class="effect-label">Sub Bass <span id="subbass-val">0</span> dB</div>
-              <input type="range" class="full-range" min="-20" max="20" value="0" oninput="setEQ('subbass',this.value)">
-            </div>
             <div class="effect-group">
               <div class="effect-label">Bass <span id="bass-val">0</span> dB</div>
               <input type="range" class="full-range" min="-20" max="20" value="0" oninput="setEQ('bass',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Low Mid <span id="lowmid-val">0</span> dB</div>
-              <input type="range" class="full-range" min="-20" max="20" value="0" oninput="setEQ('lowmid',this.value)">
             </div>
             <div class="effect-group">
               <div class="effect-label">Mid <span id="mid-val">0</span> dB</div>
               <input type="range" class="full-range" min="-20" max="20" value="0" oninput="setEQ('mid',this.value)">
             </div>
             <div class="effect-group">
-              <div class="effect-label">Presence <span id="presence-val">0</span> dB</div>
-              <input type="range" class="full-range" min="-20" max="20" value="0" oninput="setEQ('presence',this.value)">
-            </div>
-            <div class="effect-group">
               <div class="effect-label">Treble <span id="treble-val">0</span> dB</div>
               <input type="range" class="full-range" min="-20" max="20" value="0" oninput="setEQ('treble',this.value)">
             </div>
             <div class="effect-group">
-              <div class="effect-label">Hi-Pass <span id="hipass-val">20</span> Hz</div>
-              <input type="range" class="full-range" min="20" max="2000" value="20" oninput="setEQ('hipass',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Lo-Pass <span id="lopass-val">20000</span> Hz</div>
-              <input type="range" class="full-range" min="500" max="20000" value="20000" oninput="setEQ('lopass',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Warmth <span id="warmth-val">0</span>%</div>
-              <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('warmth',this.value)">
-            </div>
-          </div>
-          <div class="section-title" style="margin-bottom:4px;margin-top:14px">Pitch &amp; Time</div>
-          <div class="effects-grid">
-            <div class="effect-group">
-              <div class="effect-label">Pitch <span id="pitch-val">0</span> semitone</div>
-              <input type="range" class="full-range" min="-24" max="24" step="1" value="0" oninput="setPitch(this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Fine Tune <span id="finetune-val">0</span> cent</div>
-              <input type="range" class="full-range" min="-100" max="100" step="1" value="0" oninput="setFineTune(this.value)">
+              <div class="effect-label">Pitch <span id="pitch-val">0</span> st</div>
+              <input type="range" class="full-range" min="-12" max="12" value="0" oninput="setPitch(this.value)">
             </div>
             <div class="effect-group">
               <div class="effect-label">Speed <span id="speed-val">1.0</span>x</div>
-              <input type="range" class="full-range" min="0.25" max="4" step="0.05" value="1" oninput="setSpeed(this.value)">
+              <input type="range" class="full-range" min="0.5" max="2" step="0.1" value="1" oninput="setSpeed(this.value)">
             </div>
-          </div>
-          <div class="section-title" style="margin-bottom:4px;margin-top:14px">Effects</div>
-          <div class="effects-grid">
             <div class="effect-group">
               <div class="effect-label">Reverb <span id="reverb-val">0</span>%</div>
               <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('reverb',this.value)">
             </div>
             <div class="effect-group">
-              <div class="effect-label">Reverb Decay <span id="reverbdecay-val">2.0</span>s</div>
-              <input type="range" class="full-range" min="0.1" max="8" step="0.1" value="2" oninput="setEffect('reverbdecay',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Delay <span id="delay-val">0</span>%</div>
-              <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('delay',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Delay Time <span id="delaytime-val">250</span>ms</div>
-              <input type="range" class="full-range" min="50" max="1000" step="10" value="250" oninput="setEffect('delaytime',this.value)">
-            </div>
-            <div class="effect-group">
               <div class="effect-label">Chorus <span id="chorus-val">0</span>%</div>
               <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('chorus',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Flanger <span id="flanger-val">0</span>%</div>
-              <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('flanger',this.value)">
             </div>
             <div class="effect-group">
               <div class="effect-label">Distortion <span id="distortion-val">0</span>%</div>
@@ -786,10 +736,6 @@ input[type=range].full-range{width:100%}
             <div class="effect-group">
               <div class="effect-label">Compressor <span id="compressor-val">0</span>%</div>
               <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('compressor',this.value)">
-            </div>
-            <div class="effect-group">
-              <div class="effect-label">Lo-Fi <span id="lofi-val">0</span>%</div>
-              <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('lofi',this.value)">
             </div>
             <div class="effect-group">
               <div class="effect-label">Stereo Width <span id="stereowidth-val">50</span>%</div>
@@ -806,6 +752,10 @@ input[type=range].full-range{width:100%}
             <div class="effect-group">
               <div class="effect-label">Gain <span id="gain-val">100</span>%</div>
               <input type="range" class="full-range" min="0" max="200" value="100" oninput="setEffect('gain',this.value)">
+            </div>
+            <div class="effect-group">
+              <div class="effect-label">Warmth <span id="warmth-val">0</span>%</div>
+              <input type="range" class="full-range" min="0" max="100" value="0" oninput="setEffect('warmth',this.value)">
             </div>
           </div>
           <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
@@ -2050,10 +2000,12 @@ function togglePlay() {
         if (!streamAudio) return;
         const cur = streamAudio.currentTime;
         const dur = isFinite(streamAudio.duration) ? streamAudio.duration : 0;
-        const tt = document.getElementById('transport-time');
-        const pf = document.getElementById('progress-bar');
+        const ct = document.getElementById('current-time');
+        const tt = document.getElementById('total-time');
+        const pf = document.getElementById('progress-fill');
         const ph = document.getElementById('playhead');
-        if (tt) tt.textContent = `${fmtTime(cur)} / ${fmtTime(dur)}`;
+        if (ct) ct.textContent = fmtTime(cur);
+        if (tt) tt.textContent = fmtTime(dur);
         if (dur > 0) {
           if (pf) pf.style.width = (cur / dur * 100) + '%';
           if (ph) ph.style.left = (cur / dur * 100) + '%';
@@ -2145,16 +2097,7 @@ function seekAudio(e) {
 
 function seekBack() { pauseOffset = Math.max(0, (audioCtx ? audioCtx.currentTime - startTime : 0) - 5); if (isPlaying) { audioSource.stop(); playAudio(); } }
 function seekForward() { if (!audioBuffer) return; pauseOffset = Math.min(audioBuffer.duration, (audioCtx ? audioCtx.currentTime - startTime : 0) + 5); if (isPlaying) { audioSource.stop(); playAudio(); } }
-function setVolume(v) {
-  v = parseFloat(v);
-  if (streamAudio) streamAudio.volume = Math.min(1, Math.max(0, v));
-  if (gainNode) gainNode.gain.value = v;
-  if (audioSource && audioCtx) {
-    if (!_mainGain) { _mainGain = audioCtx.createGain(); }
-    _mainGain.gain.value = v;
-  }
-}
-let _mainGain = null;
+function setVolume(v) { if (audioCtx) { const g = audioCtx.createGain(); g.gain.value = v; } }
 function loopToggle() {
   isLooping = !isLooping;
   if (audioSource) audioSource.loop = isLooping;
@@ -2176,287 +2119,135 @@ function setupStreamAudio(audio) {
   if (!streamCtx) {
     streamCtx = new (window.AudioContext || window.webkitAudioContext)();
     streamSource = streamCtx.createMediaElementSource(audio);
-    const ctx = streamCtx;
-
     // EQ Filters
-    // Sub bass
-    let subBassFilter = ctx.createBiquadFilter();
-    subBassFilter.type = 'peaking'; subBassFilter.frequency.value = 60; subBassFilter.Q.value = 1.0;
-    ctx._subBassFilter = subBassFilter;
-
-    bassFilter = ctx.createBiquadFilter();
+    bassFilter = streamCtx.createBiquadFilter();
     bassFilter.type = 'lowshelf'; bassFilter.frequency.value = 150; bassFilter.Q.value = 0.7;
-
-    let lowMidFilter = ctx.createBiquadFilter();
+    
+    let lowMidFilter = streamCtx.createBiquadFilter();
     lowMidFilter.type = 'peaking'; lowMidFilter.frequency.value = 500; lowMidFilter.Q.value = 1;
-    ctx._lowMidFilter = lowMidFilter;
-
-    midFilter = ctx.createBiquadFilter();
+    
+    midFilter = streamCtx.createBiquadFilter();
     midFilter.type = 'peaking'; midFilter.frequency.value = 2000; midFilter.Q.value = 1;
-
-    // Presence
-    let presenceFilter = ctx.createBiquadFilter();
-    presenceFilter.type = 'peaking'; presenceFilter.frequency.value = 4000; presenceFilter.Q.value = 1.2;
-    ctx._presenceFilter = presenceFilter;
-
-    trebleFilter = ctx.createBiquadFilter();
+    
+    trebleFilter = streamCtx.createBiquadFilter();
     trebleFilter.type = 'highshelf'; trebleFilter.frequency.value = 6000; trebleFilter.Q.value = 0.7;
-
-    // Hi-pass / Lo-pass
-    let hipassFilter = ctx.createBiquadFilter();
-    hipassFilter.type = 'highpass'; hipassFilter.frequency.value = 20; hipassFilter.Q.value = 0.7;
-    ctx._hipassFilter = hipassFilter;
-
-    let lopassFilter = ctx.createBiquadFilter();
-    lopassFilter.type = 'lowpass'; lopassFilter.frequency.value = 20000; lopassFilter.Q.value = 0.7;
-    ctx._lopassFilter = lopassFilter;
-
-    // Distortion (waveshaper)
-    let distNode = ctx.createWaveShaper();
-    distNode.curve = _makeDistCurve(0); distNode.oversample = '4x';
-    ctx._distNode = distNode;
-
-    gainNode = ctx.createGain(); gainNode.gain.value = 1;
-
-    // Compressor
-    let compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -24; compressor.knee.value = 30;
-    compressor.ratio.value = 1; compressor.attack.value = 0.003; compressor.release.value = 0.25;
-    ctx._compressor = compressor;
-
-    // Delay
-    let delayNode = ctx.createDelay(2.0); delayNode.delayTime.value = 0.25;
-    let delayWet = ctx.createGain(); delayWet.gain.value = 0;
-    let delayFeed = ctx.createGain(); delayFeed.gain.value = 0;
-    ctx._delayNode = delayNode; ctx._delayWet = delayWet; ctx._delayFeed = delayFeed;
-
-    // Reverb (convolver)
-    let convolver = ctx.createConvolver();
-    let reverbWet = ctx.createGain(); reverbWet.gain.value = 0;
-    let reverbDry = ctx.createGain(); reverbDry.gain.value = 1;
-    ctx._convolver = convolver; ctx._reverbWet = reverbWet; ctx._reverbDry = reverbDry;
-    _buildReverbIR(ctx, convolver, 2.0);
-
-    // Chorus
-    let chorusDelay = ctx.createDelay(0.03); chorusDelay.delayTime.value = 0.005;
-    let chorusLFO = ctx.createOscillator(); chorusLFO.frequency.value = 1.2; chorusLFO.start();
-    let chorusLFOGain = ctx.createGain(); chorusLFOGain.gain.value = 0;
-    let chorusWet = ctx.createGain(); chorusWet.gain.value = 0;
-    chorusLFO.connect(chorusLFOGain); chorusLFOGain.connect(chorusDelay.delayTime);
-    ctx._chorusDelay = chorusDelay; ctx._chorusLFOGain = chorusLFOGain; ctx._chorusWet = chorusWet;
-
-    // Flanger
-    let flangerDelay = ctx.createDelay(0.02); flangerDelay.delayTime.value = 0.003;
-    let flangerLFO = ctx.createOscillator(); flangerLFO.frequency.value = 0.3; flangerLFO.start();
-    let flangerLFOGain = ctx.createGain(); flangerLFOGain.gain.value = 0;
-    let flangerFeed = ctx.createGain(); flangerFeed.gain.value = 0;
-    let flangerWet = ctx.createGain(); flangerWet.gain.value = 0;
-    flangerLFO.connect(flangerLFOGain); flangerLFOGain.connect(flangerDelay.delayTime);
-    ctx._flangerDelay = flangerDelay; ctx._flangerLFOGain = flangerLFOGain;
-    ctx._flangerFeed = flangerFeed; ctx._flangerWet = flangerWet;
-
-    // Master gain (volume)
-    let masterGain = ctx.createGain(); masterGain.gain.value = 1;
-    ctx._masterGain = masterGain;
-
-    // === CHAIN ===
-    // source -> hipass -> lopass -> subbass -> bass -> lowmid -> mid -> presence -> treble -> dist -> gainNode -> compressor
-    streamSource.connect(hipassFilter);
-    hipassFilter.connect(lopassFilter);
-    lopassFilter.connect(subBassFilter);
-    subBassFilter.connect(bassFilter);
+    
+    gainNode = streamCtx.createGain();
+    gainNode.gain.value = 1;
+    
+    // Compressor node
+    let compressor = streamCtx.createDynamicsCompressor();
+    compressor.threshold.value = -24;
+    compressor.knee.value = 30;
+    compressor.ratio.value = 1;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    streamCtx._compressor = compressor;
+    
+    // Chain: source -> bass -> lowmid -> mid -> treble -> gain -> compressor -> output
+    streamSource.connect(bassFilter);
     bassFilter.connect(lowMidFilter);
     lowMidFilter.connect(midFilter);
-    midFilter.connect(presenceFilter);
-    presenceFilter.connect(trebleFilter);
-    trebleFilter.connect(distNode);
-    distNode.connect(gainNode);
+    midFilter.connect(trebleFilter);
+    trebleFilter.connect(gainNode);
     gainNode.connect(compressor);
-
-    // Chorus split from compressor
-    compressor.connect(chorusDelay); chorusDelay.connect(chorusWet);
-    compressor.connect(flangerDelay); flangerDelay.connect(flangerWet);
-    flangerDelay.connect(flangerFeed); flangerFeed.connect(flangerDelay);
-
-    // Merge chorus + flanger + dry into delay
-    compressor.connect(delayNode);
-    chorusWet.connect(delayNode);
-    flangerWet.connect(delayNode);
-
-    // Delay
-    delayNode.connect(delayWet);
-    delayNode.connect(delayFeed); delayFeed.connect(delayNode);
-
-    // Reverb split
-    compressor.connect(reverbDry);
-    delayWet.connect(reverbDry);
-    compressor.connect(convolver); convolver.connect(reverbWet);
-    delayWet.connect(convolver);
-
-    reverbDry.connect(masterGain);
-    reverbWet.connect(masterGain);
-    masterGain.connect(ctx.destination);
+    compressor.connect(streamCtx.destination);
+    streamCtx._lowMidFilter = lowMidFilter;
   }
-}
-
-function _makeDistCurve(amount) {
-  const n = 256, curve = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    const x = (i * 2) / n - 1;
-    if (amount === 0) { curve[i] = x; continue; }
-    const k = amount * 300;
-    curve[i] = ((3 + k) * x * 20 * (Math.PI / 180)) / (Math.PI + k * Math.abs(x));
-  }
-  return curve;
-}
-
-function _buildReverbIR(ctx, convolver, decay) {
-  const rate = ctx.sampleRate, len = Math.floor(rate * decay);
-  const buf = ctx.createBuffer(2, len, rate);
-  for (let c = 0; c < 2; c++) {
-    const d = buf.getChannelData(c);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
-  }
-  convolver.buffer = buf;
 }
 
 function setEQ(type, val) {
-  const el = document.getElementById(type+'-val');
-  if (el) el.textContent = val;
+  document.getElementById(type+'-val').textContent = val;
   if (audioBuffer === 'stream' && streamAudio) {
     setupStreamAudio(streamAudio);
-    const ctx = streamCtx; const g = parseFloat(val);
-    if (type === 'bass' && bassFilter) bassFilter.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-    else if (type === 'mid' && midFilter) midFilter.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-    else if (type === 'treble' && trebleFilter) trebleFilter.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-    else if (type === 'subbass' && ctx._subBassFilter) ctx._subBassFilter.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-    else if (type === 'lowmid' && ctx._lowMidFilter) ctx._lowMidFilter.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-    else if (type === 'presence' && ctx._presenceFilter) ctx._presenceFilter.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-    else if (type === 'hipass' && ctx._hipassFilter) ctx._hipassFilter.frequency.setTargetAtTime(Math.max(20, g), ctx.currentTime, 0.01);
-    else if (type === 'lopass' && ctx._lopassFilter) ctx._lopassFilter.frequency.setTargetAtTime(Math.min(20000, g), ctx.currentTime, 0.01);
+    const gain = parseFloat(val);
+    if (type === 'bass' && bassFilter) bassFilter.gain.value = gain;
+    else if (type === 'mid' && midFilter) midFilter.gain.value = gain;
+    else if (type === 'treble' && trebleFilter) trebleFilter.gain.value = gain;
   }
 }
-
 function setPitch(val) {
   document.getElementById('pitch-val').textContent = val;
   const semitones = parseFloat(val);
-  const fine = parseFloat(document.getElementById('finetune-val')?.textContent || 0);
-  const rate = Math.pow(2, (semitones + fine / 100) / 12);
-  if (audioBuffer === 'stream' && streamAudio) streamAudio.playbackRate = rate;
-  if (audioSource) audioSource.playbackRate.value = rate;
+  // Untuk stream: playbackRate (mengubah pitch DAN speed)
+  if (audioBuffer === 'stream' && streamAudio) {
+    streamAudio.playbackRate = Math.pow(2, semitones / 12);
+  }
+  // Untuk local audio
+  if (audioSource) audioSource.playbackRate.value = Math.pow(2, semitones / 12);
 }
-
-function setFineTune(val) {
-  document.getElementById('finetune-val').textContent = val;
-  const semitones = parseFloat(document.getElementById('pitch-val')?.textContent || 0);
-  const rate = Math.pow(2, (semitones + parseFloat(val) / 100) / 12);
-  if (audioBuffer === 'stream' && streamAudio) streamAudio.playbackRate = rate;
-  if (audioSource) audioSource.playbackRate.value = rate;
-}
-
 function setSpeed(val) {
   document.getElementById('speed-val').textContent = parseFloat(val).toFixed(1);
   if (audioSource) audioSource.playbackRate.value = parseFloat(val);
   if (audioBuffer === 'stream' && streamAudio) streamAudio.playbackRate = parseFloat(val);
 }
-
 function setEffect(type, val) {
   const el = document.getElementById(type+'-val');
-  if (el) {
-    if (type === 'reverbdecay') el.textContent = parseFloat(val).toFixed(1);
-    else if (type === 'delaytime') el.textContent = Math.round(val);
-    else el.textContent = Math.round(val);
-  }
+  if (el) el.textContent = val;
   if (audioBuffer === 'stream' && streamAudio) {
     setupStreamAudio(streamAudio);
-    const ctx = streamCtx;
-    const v = parseFloat(val); const v01 = v / 100;
+    const v = parseFloat(val);
+    const v01 = v / 100;
     if (type === 'reverb') {
-      if (ctx._reverbWet) ctx._reverbWet.gain.setTargetAtTime(v01 * 0.9, ctx.currentTime, 0.05);
-      if (ctx._reverbDry) ctx._reverbDry.gain.setTargetAtTime(1 - v01 * 0.5, ctx.currentTime, 0.05);
+      // Reverb: boost high frequencies + slight gain
+      if (trebleFilter) trebleFilter.gain.value = v01 * 6;
     }
-    if (type === 'reverbdecay' && ctx._convolver) _buildReverbIR(ctx, ctx._convolver, v);
-    if (type === 'compressor' && ctx._compressor) {
-      ctx._compressor.threshold.value = -24 - v01 * 30;
-      ctx._compressor.ratio.value = 1 + v01 * 19;
-      ctx._compressor.knee.value = 30 - v01 * 28;
+    if (type === 'compressor' && streamCtx && streamCtx._compressor) {
+      streamCtx._compressor.threshold.value = -24 - (v01 * 30);
+      streamCtx._compressor.ratio.value = 1 + v01 * 19;
     }
-    if (type === 'distortion' && ctx._distNode) ctx._distNode.curve = _makeDistCurve(v01);
-    if (type === 'delay') {
-      if (ctx._delayWet) ctx._delayWet.gain.setTargetAtTime(v01 * 0.8, ctx.currentTime, 0.05);
-      if (ctx._delayFeed) ctx._delayFeed.gain.setTargetAtTime(v01 * 0.4, ctx.currentTime, 0.05);
-    }
-    if (type === 'delaytime' && ctx._delayNode) ctx._delayNode.delayTime.setTargetAtTime(v / 1000, ctx.currentTime, 0.05);
-    if (type === 'chorus') {
-      if (ctx._chorusWet) ctx._chorusWet.gain.setTargetAtTime(v01 * 0.6, ctx.currentTime, 0.05);
-      if (ctx._chorusLFOGain) ctx._chorusLFOGain.gain.setTargetAtTime(v01 * 0.003, ctx.currentTime, 0.05);
-    }
-    if (type === 'flanger') {
-      if (ctx._flangerWet) ctx._flangerWet.gain.setTargetAtTime(v01 * 0.7, ctx.currentTime, 0.05);
-      if (ctx._flangerFeed) ctx._flangerFeed.gain.setTargetAtTime(v01 * 0.5, ctx.currentTime, 0.05);
-      if (ctx._flangerLFOGain) ctx._flangerLFOGain.gain.setTargetAtTime(v01 * 0.004, ctx.currentTime, 0.05);
-    }
-    if (type === 'lofi') {
-      if (ctx._lopassFilter) ctx._lopassFilter.frequency.setTargetAtTime(Math.max(500, 20000 - v01 * 18000), ctx.currentTime, 0.05);
-      if (ctx._distNode) ctx._distNode.curve = _makeDistCurve(v01 * 0.4);
+    if (type === 'distortion' && streamCtx) {
+      // Distortion via gain boost
+      if (gainNode) gainNode.gain.value = 1 + v01 * 3;
     }
     if (type === 'gain') {
-      if (gainNode) gainNode.gain.setTargetAtTime(v / 100, ctx.currentTime, 0.01);
+      if (gainNode) gainNode.gain.value = v / 100;
       if (streamAudio) streamAudio.volume = Math.min(1, v / 100);
     }
-    if (type === 'stereowidth') {
-      if (ctx._masterGain) ctx._masterGain.gain.setTargetAtTime(0.7 + v01 * 0.6, ctx.currentTime, 0.05);
+    if (type === 'lowcut' && streamCtx) {
+      if (!streamCtx._lowcut) {
+        streamCtx._lowcut = streamCtx.createBiquadFilter();
+        streamCtx._lowcut.type = 'highpass';
+        // Insert before bassFilter
+      }
+      if (bassFilter) bassFilter.frequency.value = Math.max(20, v);
     }
-    if (type === 'warmth' && bassFilter && ctx._lowMidFilter) {
-      bassFilter.gain.setTargetAtTime(v01 * 4, ctx.currentTime, 0.05);
-      ctx._lowMidFilter.gain.setTargetAtTime(v01 * 5, ctx.currentTime, 0.05);
+    if (type === 'highcut' && trebleFilter) {
+      trebleFilter.frequency.value = Math.max(1000, v);
     }
-    if (type === 'lowcut' && ctx._hipassFilter) ctx._hipassFilter.frequency.setTargetAtTime(Math.max(20, v), ctx.currentTime, 0.05);
-    if (type === 'highcut' && ctx._lopassFilter) ctx._lopassFilter.frequency.setTargetAtTime(Math.min(20000, v), ctx.currentTime, 0.05);
+    if (type === 'warmth' && bassFilter && streamCtx && streamCtx._lowMidFilter) {
+      // Warmth: boost low-mid + slight bass
+      bassFilter.gain.value = (bassFilter.gain.value || 0) + v01 * 3;
+      streamCtx._lowMidFilter.gain.value = v01 * 4;
+    }
+    if (type === 'chorus') {
+      // Chorus: slight detune
+      if (streamAudio) streamAudio.preservesPitch = v01 < 0.1;
+    }
   }
 }
-
 function resetEffects() {
+  ['bass','mid','treble'].forEach(k => { document.getElementById(k+'-val').textContent = 0; });
+  document.getElementById('pitch-val').textContent = 0;
+  document.getElementById('speed-val').textContent = '1.0';
+  document.getElementById('reverb-val').textContent = 0;
+  document.getElementById('chorus-val').textContent = 0;
+  document.getElementById('distortion-val').textContent = 0;
+  document.getElementById('compressor-val').textContent = 0;
+  document.getElementById('stereowidth-val').textContent = 50;
   document.querySelectorAll('.effects-grid input[type=range]').forEach(r => { r.value = r.defaultValue !== undefined ? r.defaultValue : 0; });
-  // Reset labels
-  const labels = {
-    'bass-val':'0','mid-val':'0','treble-val':'0','pitch-val':'0','finetune-val':'0',
-    'speed-val':'1.0','reverb-val':'0','reverbdecay-val':'2.0','chorus-val':'0',
-    'distortion-val':'0','compressor-val':'0','stereowidth-val':'50','delay-val':'0',
-    'delaytime-val':'250','flanger-val':'0','lofi-val':'0','subbass-val':'0',
-    'lowmid-val':'0','presence-val':'0','hipass-val':'20','lopass-val':'20000',
-    'gain-val':'100','warmth-val':'0','lowcut-val':'0','highcut-val':'20000'
-  };
-  for (const [id, v] of Object.entries(labels)) { const el = document.getElementById(id); if (el) el.textContent = v; }
-  // Reset audio nodes
-  if (bassFilter) { bassFilter.gain.value = 0; bassFilter.frequency.value = 150; }
-  if (midFilter)  { midFilter.gain.value = 0; midFilter.frequency.value = 2000; }
-  if (trebleFilter) { trebleFilter.gain.value = 0; trebleFilter.frequency.value = 6000; }
+  // Reset stream audio effects
+  if (bassFilter) bassFilter.gain.value = 0;
+  if (midFilter) midFilter.gain.value = 0;
+  if (trebleFilter) trebleFilter.gain.value = 0;
   if (gainNode) gainNode.gain.value = 1;
   if (streamAudio) { streamAudio.playbackRate = 1; streamAudio.volume = 1; }
+  if (streamCtx && streamCtx._compressor) streamCtx._compressor.ratio.value = 1;
   if (audioSource) audioSource.playbackRate.value = 1;
-  if (streamCtx) {
-    const ctx = streamCtx;
-    if (ctx._subBassFilter) ctx._subBassFilter.gain.value = 0;
-    if (ctx._lowMidFilter) ctx._lowMidFilter.gain.value = 0;
-    if (ctx._presenceFilter) ctx._presenceFilter.gain.value = 0;
-    if (ctx._hipassFilter) ctx._hipassFilter.frequency.value = 20;
-    if (ctx._lopassFilter) ctx._lopassFilter.frequency.value = 20000;
-    if (ctx._distNode) ctx._distNode.curve = _makeDistCurve(0);
-    if (ctx._compressor) { ctx._compressor.threshold.value = -24; ctx._compressor.ratio.value = 1; ctx._compressor.knee.value = 30; }
-    if (ctx._reverbWet) ctx._reverbWet.gain.value = 0;
-    if (ctx._reverbDry) ctx._reverbDry.gain.value = 1;
-    if (ctx._delayWet) ctx._delayWet.gain.value = 0;
-    if (ctx._delayFeed) ctx._delayFeed.gain.value = 0;
-    if (ctx._chorusWet) ctx._chorusWet.gain.value = 0;
-    if (ctx._chorusLFOGain) ctx._chorusLFOGain.gain.value = 0;
-    if (ctx._flangerWet) ctx._flangerWet.gain.value = 0;
-    if (ctx._flangerFeed) ctx._flangerFeed.gain.value = 0;
-    if (ctx._flangerLFOGain) ctx._flangerLFOGain.gain.value = 0;
-    if (ctx._masterGain) ctx._masterGain.gain.value = 1;
-  }
-  const volSlider = document.getElementById('volume-slider');
-  if (volSlider) { volSlider.value = 1; setVolume(1); }
+  // Reset filter frequencies ke default
+  if (bassFilter) { bassFilter.frequency.value = 150; bassFilter.gain.value = 0; }
+  if (midFilter) { midFilter.frequency.value = 2000; midFilter.gain.value = 0; }
+  if (trebleFilter) { trebleFilter.frequency.value = 6000; trebleFilter.gain.value = 0; }
   showNotif('info', 'Effects Reset', 'Semua efek dikembalikan ke default.');
 }
 
