@@ -1912,50 +1912,50 @@ function selectEditorTrack() {
   }
 }
 
-// Global audio element untuk streaming YouTube
 let streamAudio = null;
 
 function loadAudioForEditor(url) {
-  const isStream = url && (url.includes('yt-engine-production') || url.includes('railway.app'));
+  if (!url) return;
+  const t = tracks[currentTrackIndex];
 
-  if (isStream) {
-    // Untuk YT Engine: pakai HTML Audio element (streaming langsung)
-    if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; }
-    streamAudio = new Audio();
+  // YouTube via YT Engine: pakai HTML Audio (streaming)
+  const isYTStream = url && url.includes('yt-engine-production');
+  if (isYTStream) {
+    // Convert ke /stream/mp3 endpoint
+    let streamUrl = url;
+    if (url.includes('/download/mp3')) {
+      streamUrl = url.replace('/download/mp3', '/stream/mp3').split('&title')[0];
+    } else if (!url.includes('/stream/mp3')) {
+      streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(t?.originalUrl || '')}`;
+    }
+
+    if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio = null; }
+    streamAudio = new Audio(streamUrl);
     streamAudio.crossOrigin = 'anonymous';
-    streamAudio.src = url;
-    streamAudio.preload = 'auto';
+    streamAudio.preload = 'metadata';
 
     streamAudio.addEventListener('loadedmetadata', () => {
       drawFakeWaveform();
-      const t = tracks[currentTrackIndex];
       const dur = streamAudio.duration;
-      if (t && dur && isFinite(dur)) {
-        t.duration = fmtTime(dur);
-        renderTrackList();
-        updateStats();
-      }
-      showNotif('success', 'Siap Diputar', 'Track YouTube berhasil dimuat. Tekan play!');
+      if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
+      audioBuffer = 'stream';
+      pauseOffset = 0;
+      showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
     });
-
-    streamAudio.addEventListener('error', (e) => {
+    streamAudio.addEventListener('error', () => {
       drawFakeWaveform();
-      showNotif('error', 'Load Failed', 'Gagal memuat audio YouTube. Coba import ulang.');
+      showNotif('error', 'Gagal Muat', 'Audio YouTube gagal dimuat. Coba import ulang.');
     });
-
-    // Override play/pause untuk streaming
-    audioBuffer = 'stream'; // flag bahwa ini stream
-    pauseOffset = 0;
+    audioBuffer = 'stream';
     return;
   }
 
-  // File lokal: pakai WebAudio API seperti biasa
+  // File lokal: WebAudio API
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   fetch(url).then(r => r.arrayBuffer()).then(buf => audioCtx.decodeAudioData(buf)).then(decoded => {
     audioBuffer = decoded;
     pauseOffset = 0;
     drawWaveform(decoded);
-    const t = tracks[currentTrackIndex];
     if (t) { t.duration = fmtTime(decoded.duration); renderTrackList(); updateStats(); }
   }).catch(() => { drawFakeWaveform(); showNotif('error', 'Load Failed', 'Audio format may not be supported by this browser.'); });
 }
@@ -1994,7 +1994,6 @@ function drawFakeWaveform() {
 }
 
 function togglePlay() {
-  // Handle streaming audio (YouTube via YT Engine)
   if (audioBuffer === 'stream' && streamAudio) {
     if (streamAudio.paused) {
       streamAudio.play().catch(e => showNotif('error', 'Play Failed', e.message));
@@ -2003,22 +2002,24 @@ function togglePlay() {
       streamAudio.pause();
       isPlaying = false;
     }
-    document.getElementById('play-btn').innerHTML = isPlaying
+    const playBtn = document.getElementById('play-btn');
+    if (playBtn) playBtn.innerHTML = isPlaying
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
-    // Update progress
     if (isPlaying) {
-      const updateProgress = () => {
+      const tick = () => {
         if (!streamAudio || streamAudio.paused) return;
         const cur = streamAudio.currentTime;
         const dur = streamAudio.duration || 1;
-        document.getElementById('current-time').textContent = fmtTime(cur);
-        document.getElementById('total-time').textContent = fmtTime(dur);
-        const pct = (cur / dur) * 100;
-        document.getElementById('progress-fill').style.width = pct + '%';
-        if (!streamAudio.paused) requestAnimationFrame(updateProgress);
+        const ct = document.getElementById('current-time');
+        const tt = document.getElementById('total-time');
+        const pf = document.getElementById('progress-fill');
+        if (ct) ct.textContent = fmtTime(cur);
+        if (tt) tt.textContent = fmtTime(isFinite(dur) ? dur : 0);
+        if (pf) pf.style.width = (cur / dur * 100) + '%';
+        requestAnimationFrame(tick);
       };
-      requestAnimationFrame(updateProgress);
+      requestAnimationFrame(tick);
     }
     return;
   }
@@ -2160,7 +2161,13 @@ async function downloadTrackById(i) {
   // YouTube: pakai YT Engine
   if (t.platform === 'youtube' && t.originalUrl) {
     const dlUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
-    window.open(dlUrl, '_blank');
+    const a = document.createElement('a');
+    a.href = dlUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     exportCount++;
     localStorage.setItem(userKey('exports'), exportCount);
     document.getElementById('stat-exports').textContent = exportCount;
