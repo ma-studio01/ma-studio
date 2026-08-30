@@ -55,6 +55,7 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 .splash-bar{width:120px;height:1px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:32px;overflow:hidden}
 .splash-bar-fill{height:100%;width:0;background:#fff;border-radius:2px;animation:splashprog 1.6s ease forwards}
 @keyframes splashprog{to{width:100%}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── INTRO OVERLAY ── */
 #intro-overlay{position:fixed;inset:0;background:#000;z-index:9998;display:flex;align-items:center;justify-content:center;transition:opacity .8s}
@@ -794,53 +795,42 @@ input[type=range].full-range{width:100%}
       <div class="page-heading">Komunitas</div>
       <div class="page-sub">Bergabung dengan komunitas MA Studio</div>
 
-      <!-- Discord banner -->
-      <div style="background:linear-gradient(135deg,rgba(88,101,242,0.18),rgba(88,101,242,0.06));border:1px solid rgba(88,101,242,0.3);border-radius:22px;padding:28px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-        <div style="width:52px;height:52px;background:#5865F2;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.04.036.052a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      <!-- Discord Server Card (dynamic) -->
+      <div id="discord-server-card" style="background:linear-gradient(135deg,rgba(88,101,242,0.18),rgba(88,101,242,0.06));border:1px solid rgba(88,101,242,0.3);border-radius:22px;padding:28px;margin-bottom:20px">
+        <!-- Loading state -->
+        <div id="discord-card-loading" style="display:flex;align-items:center;gap:14px">
+          <div style="width:64px;height:64px;border-radius:50%;background:rgba(88,101,242,0.3);flex-shrink:0;animation:pulse 1.5s ease infinite"></div>
+          <div style="flex:1">
+            <div style="height:14px;background:rgba(255,255,255,.08);border-radius:6px;width:60%;margin-bottom:8px;animation:pulse 1.5s ease infinite"></div>
+            <div style="height:10px;background:rgba(255,255,255,.05);border-radius:6px;width:80%;animation:pulse 1.5s ease infinite"></div>
+          </div>
         </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:.95rem;margin-bottom:3px">Discord Server MA Studio</div>
-          <div style="color:var(--t2);font-size:.78rem">Chat, share audio, diskusi fitur, dan dapat update pertama</div>
-        </div>
-        <button class="btn btn-solid" onclick="window.open('https://discord.gg/mastudio','_blank')" style="background:#5865F2;color:#fff;box-shadow:0 4px 16px rgba(88,101,242,.4)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.04.036.052a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
-          Join Discord
-        </button>
-      </div>
-
-      <!-- GitHub -->
-      <div style="background:var(--glass);border:1px solid var(--border);border-radius:22px;padding:28px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)">
-        <div style="width:52px;height:52px;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="#000"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:.95rem;margin-bottom:3px">GitHub — Open Source</div>
-          <div style="color:var(--t2);font-size:.78rem">Source code MA Studio tersedia di GitHub. Kontribusi welcome!</div>
-        </div>
-        <button class="btn btn-outline" onclick="window.open('https://github.com/mastudio-id','_blank')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-          View on GitHub
-        </button>
-      </div>
-
-      <!-- Community Stats -->
-      <div class="stats-grid" style="margin-bottom:20px">
-        <div class="stat-card" style="text-align:center">
-          <div style="font-size:1.6rem;font-weight:800;font-family:'Syne',sans-serif">1.2K+</div>
-          <div style="color:var(--t2);font-size:.75rem;margin-top:4px">Members Discord</div>
-        </div>
-        <div class="stat-card" style="text-align:center">
-          <div style="font-size:1.6rem;font-weight:800;font-family:'Syne',sans-serif">5.8K+</div>
-          <div style="color:var(--t2);font-size:.75rem;margin-top:4px">Projects Dibuat</div>
-        </div>
-        <div class="stat-card" style="text-align:center">
-          <div style="font-size:1.6rem;font-weight:800;font-family:'Syne',sans-serif">89</div>
-          <div style="color:var(--t2);font-size:.75rem;margin-top:4px">Premium Users</div>
-        </div>
-        <div class="stat-card" style="text-align:center">
-          <div style="font-size:1.6rem;font-weight:800;font-family:'Syne',sans-serif">12+</div>
-          <div style="color:var(--t2);font-size:.75rem;margin-top:4px">Kontributor</div>
+        <!-- Loaded state -->
+        <div id="discord-card-content" style="display:none;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <img id="dc-server-icon" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid rgba(88,101,242,0.5);flex-shrink:0;display:none">
+            <div id="dc-server-icon-fallback" style="width:64px;height:64px;border-radius:50%;background:#5865F2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.04.036.052a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div id="dc-server-name" style="font-weight:700;font-size:1rem;margin-bottom:4px">—</div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--t2)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#3ba55c;display:inline-block"></span>
+                  <span id="dc-online">— online</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--t3)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-block"></span>
+                  <span id="dc-members">— members</span>
+                </span>
+              </div>
+            </div>
+            <button class="btn btn-solid" onclick="window.open('https://discord.gg/X78PPKSrkJ','_blank')" style="background:#5865F2;color:#fff;box-shadow:0 4px 16px rgba(88,101,242,.4);flex-shrink:0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.04.036.052a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+              Join Discord
+            </button>
+          </div>
+          <div id="dc-description" style="color:var(--t2);font-size:.78rem;line-height:1.6;display:none"></div>
         </div>
       </div>
 
@@ -2483,6 +2473,62 @@ window.addEventListener('beforeunload', () => { if (tracks.length > 0) autoSave(
 // ══ INIT ══
 renderProjects();
 drawFakeWaveform();
+
+// ══ DISCORD SERVER INFO FETCH ══
+async function fetchDiscordServerInfo() {
+  const INVITE_CODE = 'X78PPKSrkJ';
+  try {
+    const res = await fetch(`https://discord.com/api/v10/invites/${INVITE_CODE}?with_counts=true`);
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+
+    const guild = data.guild;
+    const approxMembers = data.approximate_member_count;
+    const approxOnline = data.approximate_presence_count;
+
+    // Update name
+    const nameEl = document.getElementById('dc-server-name');
+    if (nameEl) nameEl.textContent = guild.name || 'MA Studio';
+
+    // Update counts
+    const membersEl = document.getElementById('dc-members');
+    if (membersEl) membersEl.textContent = approxMembers ? approxMembers.toLocaleString() + ' members' : '— members';
+    const onlineEl = document.getElementById('dc-online');
+    if (onlineEl) onlineEl.textContent = approxOnline ? approxOnline.toLocaleString() + ' online' : '— online';
+
+    // Server icon
+    if (guild.icon) {
+      const ext = guild.icon.startsWith('a_') ? 'gif' : 'png';
+      const iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${ext}?size=128`;
+      const iconImg = document.getElementById('dc-server-icon');
+      const iconFallback = document.getElementById('dc-server-icon-fallback');
+      if (iconImg) {
+        iconImg.src = iconUrl;
+        iconImg.style.display = 'block';
+        if (iconFallback) iconFallback.style.display = 'none';
+      }
+    }
+
+    // Description
+    if (guild.description) {
+      const descEl = document.getElementById('dc-description');
+      if (descEl) { descEl.textContent = guild.description; descEl.style.display = 'block'; }
+    }
+
+    // Show content, hide loading
+    document.getElementById('discord-card-loading').style.display = 'none';
+    document.getElementById('discord-card-content').style.display = 'flex';
+
+  } catch(e) {
+    // Fallback: just show default with Join button
+    const nameEl = document.getElementById('dc-server-name');
+    if (nameEl) nameEl.textContent = 'MA Studio';
+    document.getElementById('discord-card-loading').style.display = 'none';
+    document.getElementById('discord-card-content').style.display = 'flex';
+  }
+}
+
+fetchDiscordServerInfo();
 </script>
 </body>
 </html>
