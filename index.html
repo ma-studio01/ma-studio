@@ -1678,6 +1678,7 @@ async function fetchYouTubeMeta(url) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0',
       },
       body: JSON.stringify({
         url: `https://www.youtube.com/watch?v=${videoId}`,
@@ -2082,8 +2083,8 @@ async function downloadTrackById(i) {
       const cobaltUrl = (localStorage.getItem('mas_cobalt_url') || COBALT_API).replace(/\/$/, '') + '/';
       const res = await fetch(cobaltUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ url: t.originalUrl, downloadMode: 'audio', audioFormat: fmt === 'mp3' ? 'mp3' : 'best' }),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+        body: JSON.stringify({ url: t.originalUrl, downloadMode: 'audio', audioFormat: 'mp3', filenameStyle: 'basic' }),
         signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) throw new Error('Cobalt response: ' + res.status);
@@ -2604,7 +2605,7 @@ async function testCobaltUrl() {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', downloadMode: 'audio', audioFormat: 'mp3' }),
+      body: JSON.stringify({ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', downloadMode: 'audio', audioFormat: 'mp3', filenameStyle: 'basic' }),
       signal: AbortSignal.timeout(10000),
     });
     if (res.ok) {
