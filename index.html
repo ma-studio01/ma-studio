@@ -1889,9 +1889,37 @@ function selectEditorTrack() {
   } else if (t.platform === 'spotify') {
     drawFakeWaveform();
     showNotif('info', 'Spotify', 'Track Spotify tidak bisa diputar langsung. Buka di Spotify.');
+  } else if (t.platform === 'youtube' && !t.url && t.originalUrl) {
+    drawFakeWaveform();
+    showNotif('info', 'Memuat YouTube...', 'Mengambil audio via Cobalt...');
+    // Coba fetch ulang via Cobalt
+    (async () => {
+      try {
+        const cobaltUrl = (localStorage.getItem('mas_cobalt_url') || COBALT_API).replace(/\/$/, '') + '/';
+        const res = await fetch(cobaltUrl, {
+          method: 'POST', mode: 'cors', credentials: 'omit',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ url: t.originalUrl, downloadMode: 'audio', audioFormat: 'mp3', audioBitrate: '128', filenameStyle: 'basic' }),
+          signal: AbortSignal.timeout(15000),
+        });
+        const data = await res.json();
+        let audioUrl = null;
+        if (data.status === 'tunnel' || data.status === 'redirect' || data.status === 'stream') audioUrl = data.url;
+        else if (data.status === 'picker') audioUrl = (data.picker?.find(p => p.type === 'audio') || data.picker?.[0])?.url;
+        if (audioUrl) {
+          t.url = audioUrl;
+          t.cobaltResolved = true;
+          loadAudioForEditor(audioUrl);
+        } else {
+          showNotif('error', 'YouTube Gagal', 'Cobalt tidak bisa ambil audio. Coba import ulang.');
+        }
+      } catch(e) {
+        showNotif('error', 'YouTube Gagal', 'Cobalt error: ' + e.message);
+      }
+    })();
   } else if (t.platform === 'youtube' && !t.url) {
     drawFakeWaveform();
-    showNotif('error', 'YouTube Gagal', 'Cobalt tidak berhasil ambil audio. Coba import ulang.');
+    showNotif('error', 'YouTube Gagal', 'Coba import ulang link YouTube ini.');
   } else {
     drawFakeWaveform();
   }
@@ -2097,23 +2125,12 @@ async function downloadTrackById(i) {
       }
       if (!audioUrl) throw new Error('No audio URL from Cobalt');
 
-      // Fetch blob lalu download (bypass CORS download restriction)
-      showNotif('info', 'Mengunduh...', 'Memproses file audio...');
-      const audioRes = await fetch(audioUrl);
-      if (!audioRes.ok) throw new Error('Gagal fetch audio');
-      const blob = await audioRes.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `${name}.${fmt}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      // Buka URL Cobalt langsung di tab baru - browser handle download
+      window.open(audioUrl, '_blank');
       exportCount++;
       localStorage.setItem(userKey('exports'), exportCount);
       document.getElementById('stat-exports').textContent = exportCount;
-      showNotif('success', 'Download Selesai!', `"${name}.${fmt}" berhasil diunduh`);
+      showNotif('success', 'Download Dimulai!', `Membuka link download "${name}"...`);
     } catch(e) {
       showNotif('error', 'Download Gagal', 'Cobalt error: ' + e.message + '. Pastikan Railway aktif.');
     }
