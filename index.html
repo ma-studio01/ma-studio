@@ -2091,36 +2091,14 @@ async function downloadTrackById(i) {
   const name = (i === currentTrackIndex ? document.getElementById('export-name')?.value : null) || t.name || 'track';
   const fmt = (document.getElementById('export-format')?.value || 'mp3').toLowerCase();
 
-  // YouTube: pakai Cobalt untuk dapat URL audio fresh
+  // YouTube: pakai YT Engine
   if (t.platform === 'youtube' && t.originalUrl) {
-    showNotif('info', 'Mengunduh...', 'Cobalt sedang ambil audio YouTube...');
-    try {
-      const cobaltUrl = (localStorage.getItem('mas_cobalt_url') || COBALT_API).replace(/\/$/, '') + '/';
-      const res = await fetch(cobaltUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-        body: JSON.stringify({ url: t.originalUrl, downloadMode: 'audio', audioFormat: 'mp3', filenameStyle: 'basic' }),
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!res.ok) throw new Error('Cobalt response: ' + res.status);
-      const data = await res.json();
-      let audioUrl = null;
-      if (data.status === 'tunnel' || data.status === 'redirect' || data.status === 'stream') {
-        audioUrl = data.url;
-      } else if (data.status === 'picker') {
-        audioUrl = (data.picker?.find(p => p.type === 'audio') || data.picker?.[0])?.url;
-      }
-      if (!audioUrl) throw new Error('No audio URL from Cobalt');
-
-      // Buka URL Cobalt langsung di tab baru - browser handle download
-      window.open(audioUrl, '_blank');
-      exportCount++;
-      localStorage.setItem(userKey('exports'), exportCount);
-      document.getElementById('stat-exports').textContent = exportCount;
-      showNotif('success', 'Download Dimulai!', `Membuka link download "${name}"...`);
-    } catch(e) {
-      showNotif('error', 'Download Gagal', 'Cobalt error: ' + e.message + '. Pastikan Railway aktif.');
-    }
+    const dlUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
+    window.open(dlUrl, '_blank');
+    exportCount++;
+    localStorage.setItem(userKey('exports'), exportCount);
+    document.getElementById('stat-exports').textContent = exportCount;
+    showNotif('success', 'Download Dimulai!', `"${name}.mp3" sedang diunduh...`);
     return;
   }
 
