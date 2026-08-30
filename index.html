@@ -1912,7 +1912,44 @@ function selectEditorTrack() {
   }
 }
 
+// Global audio element untuk streaming YouTube
+let streamAudio = null;
+
 function loadAudioForEditor(url) {
+  const isStream = url && (url.includes('yt-engine-production') || url.includes('railway.app'));
+
+  if (isStream) {
+    // Untuk YT Engine: pakai HTML Audio element (streaming langsung)
+    if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; }
+    streamAudio = new Audio();
+    streamAudio.crossOrigin = 'anonymous';
+    streamAudio.src = url;
+    streamAudio.preload = 'auto';
+
+    streamAudio.addEventListener('loadedmetadata', () => {
+      drawFakeWaveform();
+      const t = tracks[currentTrackIndex];
+      const dur = streamAudio.duration;
+      if (t && dur && isFinite(dur)) {
+        t.duration = fmtTime(dur);
+        renderTrackList();
+        updateStats();
+      }
+      showNotif('success', 'Siap Diputar', 'Track YouTube berhasil dimuat. Tekan play!');
+    });
+
+    streamAudio.addEventListener('error', (e) => {
+      drawFakeWaveform();
+      showNotif('error', 'Load Failed', 'Gagal memuat audio YouTube. Coba import ulang.');
+    });
+
+    // Override play/pause untuk streaming
+    audioBuffer = 'stream'; // flag bahwa ini stream
+    pauseOffset = 0;
+    return;
+  }
+
+  // File lokal: pakai WebAudio API seperti biasa
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   fetch(url).then(r => r.arrayBuffer()).then(buf => audioCtx.decodeAudioData(buf)).then(decoded => {
     audioBuffer = decoded;
@@ -1957,6 +1994,34 @@ function drawFakeWaveform() {
 }
 
 function togglePlay() {
+  // Handle streaming audio (YouTube via YT Engine)
+  if (audioBuffer === 'stream' && streamAudio) {
+    if (streamAudio.paused) {
+      streamAudio.play().catch(e => showNotif('error', 'Play Failed', e.message));
+      isPlaying = true;
+    } else {
+      streamAudio.pause();
+      isPlaying = false;
+    }
+    document.getElementById('play-btn').innerHTML = isPlaying
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+    // Update progress
+    if (isPlaying) {
+      const updateProgress = () => {
+        if (!streamAudio || streamAudio.paused) return;
+        const cur = streamAudio.currentTime;
+        const dur = streamAudio.duration || 1;
+        document.getElementById('current-time').textContent = fmtTime(cur);
+        document.getElementById('total-time').textContent = fmtTime(dur);
+        const pct = (cur / dur) * 100;
+        document.getElementById('progress-fill').style.width = pct + '%';
+        if (!streamAudio.paused) requestAnimationFrame(updateProgress);
+      };
+      requestAnimationFrame(updateProgress);
+    }
+    return;
+  }
   if (!audioBuffer) { 
     const sel = document.getElementById('active-track-select');
     const idx = parseInt(sel?.value);
@@ -1993,6 +2058,7 @@ function pauseAudio() {
 }
 
 function stopAudio() {
+  if (streamAudio) { streamAudio.pause(); streamAudio.currentTime = 0; }
   if (audioSource && isPlaying) { try { audioSource.stop(); } catch(e){} }
   isPlaying = false; pauseOffset = 0; updatePlayIcon(false);
   cancelAnimationFrame(animFrame);
