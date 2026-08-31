@@ -2276,7 +2276,12 @@ async function downloadTrackById(i) {
     showNotif('info', 'Download...', 'Engine siap, memulai download...');
     await new Promise(r => setTimeout(r, 500));
     const dlUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
-    window.location.href = dlUrl;
+    // Pakai iframe tersembunyi - tidak kena popup blocker, tidak redirect halaman
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = dlUrl;
+    document.body.appendChild(iframe);
+    setTimeout(() => document.body.removeChild(iframe), 30000);
     exportCount++;
     localStorage.setItem(userKey('exports'), exportCount);
     document.getElementById('stat-exports').textContent = exportCount;
