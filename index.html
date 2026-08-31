@@ -1891,8 +1891,6 @@ async function loadAudioForEditor(url) {
     }
 
     if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio = null; }
-    // Ping engine dulu biar ga sleep
-    try { await fetch(YT_ENGINE, { signal: AbortSignal.timeout(5000) }); } catch(e) {}
     streamAudio = new Audio(streamUrl);
     streamAudio.crossOrigin = 'anonymous';
     streamAudio.preload = 'metadata';
@@ -2257,30 +2255,16 @@ async function downloadTrackById(i) {
   const name = (i === currentTrackIndex ? document.getElementById('export-name')?.value : null) || t.name || 'track';
   const fmt = (document.getElementById('export-format')?.value || 'mp3').toLowerCase();
 
-  // YouTube: pakai YT Engine
+  // YouTube: download via YT Engine
   if (t.platform === 'youtube' && t.originalUrl) {
-    showNotif('info', 'Menyiapkan...', 'Menghubungi YT Engine, mohon tunggu...');
-    // Ping sampai engine ready (max 15 detik)
-    let engineReady = false;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        const ping = await fetch(YT_ENGINE, { signal: AbortSignal.timeout(4000) });
-        if (ping.ok) { engineReady = true; break; }
-      } catch(e) {}
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    if (!engineReady) {
-      showNotif('error', 'Engine Offline', 'YT Engine tidak merespon. Coba lagi dalam beberapa detik.');
-      return;
-    }
-    showNotif('info', 'Download...', 'Engine siap, memulai download...');
-    await new Promise(r => setTimeout(r, 500));
-    const dlUrl = `${YT_ENGINE}/proxy/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
-    showNotif('info', 'Download...', 'Sedang mengunduh audio...');
+    showNotif('info', 'Download...', 'Memproses audio, mohon tunggu...');
+    const ytUrl = t.originalUrl;
+    const dlUrl = YT_ENGINE + '/proxy/mp3?url=' + encodeURIComponent(ytUrl) + '&title=' + encodeURIComponent(name);
     try {
       const resp = await fetch(dlUrl);
-      if (!resp.ok) throw new Error('Engine error: ' + resp.status);
+      if (!resp.ok) throw new Error('Gagal: ' + resp.status);
       const blob = await resp.blob();
+      if (blob.size < 1000) throw new Error('File terlalu kecil, coba lagi');
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
@@ -2288,17 +2272,12 @@ async function downloadTrackById(i) {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      showNotif('success', 'Download Selesai!', name + '.mp3 berhasil diunduh');
     } catch(e) {
-      showNotif('error', 'Download Gagal', e.message);
+      showNotif('error', 'Download Gagal', e.message + ' - pastikan engine aktif');
       return;
-    }
-    exportCount++;
-    localStorage.setItem(userKey('exports'), exportCount);
-    document.getElementById('stat-exports').textContent = exportCount;
-    showNotif('success', 'Download Dimulai!', `"${name}.mp3" sedang diunduh...`);
-    return;
-  }
+    } }
 
   // File lokal / direct URL
   if (!t.url) {
