@@ -1656,18 +1656,6 @@ async function fetchYouTubeMeta(url) {
   let audioUrl = null;
   let duration = '-';
 
-  // Cek apakah Cobalt sudah dikonfigurasi
-  if (!COBALT_API) {
-    // Belum setup - ambil meta saja, tanpa audio
-    try {
-      const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-      const res = await fetch(oembedUrl);
-      if (res.ok) { const d = await res.json(); title = d.title || title; author = d.author_name || ''; }
-    } catch(e) {}
-    showNotif('info', 'Cobalt belum disetup', 'Tambahkan URL Railway kamu di Settings -> Roblox -> Cobalt API untuk bisa play/download YouTube.');
-    
-  }
-
   // 1. Get title via oEmbed
   try {
     const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
