@@ -1909,35 +1909,53 @@ async function loadAudioForEditor(url) {
       streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(t?.originalUrl || '')}`;
     }
 
-    if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio = null; }
+    if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); streamAudio = null; }
 
-    // Fetch as blob dulu biar mobile Chrome bisa play
-    showNotif('info', 'Mengunduh Audio...', 'Mohon tunggu beberapa detik...');
-    try {
-      const fetchRes = await fetch(streamUrl);
-      if (!fetchRes.ok) throw new Error('Fetch gagal: ' + fetchRes.status);
-      const blob = await fetchRes.blob();
-      if (blob.size < 1000) throw new Error('File terlalu kecil');
-      const blobUrl = URL.createObjectURL(blob);
-      streamAudio = new Audio(blobUrl);
-      streamAudio.preload = 'auto';
-      streamAudio.addEventListener('loadedmetadata', () => {
-        drawFakeWaveform();
-        const dur = streamAudio.duration;
-        if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
-        audioBuffer = 'stream';
-        pauseOffset = 0;
-        showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
-      });
-      streamAudio.addEventListener('error', (e) => {
-        drawFakeWaveform();
-        showNotif('error', 'Gagal Muat', 'Audio gagal dimuat. Coba import ulang.');
-      });
-      audioBuffer = 'stream';
-    } catch(e) {
+    // Direct stream - works on all devices including mobile
+    // Railway streams chunked, audio element handles buffering natively
+    streamAudio = new Audio();
+    streamAudio.preload = 'auto';
+    streamAudio.controls = false;
+
+    streamAudio.addEventListener('canplay', () => {
       drawFakeWaveform();
-      showNotif('error', 'Gagal Muat', e.message || 'Gagal mengunduh audio.');
-    }
+      const dur = streamAudio.duration;
+      if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
+      audioBuffer = 'stream';
+      pauseOffset = 0;
+      showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
+    }, { once: true });
+
+    streamAudio.addEventListener('error', () => {
+      // Fallback: coba fetch blob kalau direct stream gagal
+      showNotif('info', 'Mencoba metode lain...', '');
+      fetch(streamUrl)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); })
+        .then(blob => {
+          if (blob.size < 1000) throw new Error('File kosong');
+          const blobUrl = URL.createObjectURL(blob);
+          streamAudio = new Audio(blobUrl);
+          streamAudio.preload = 'auto';
+          streamAudio.addEventListener('canplay', () => {
+            drawFakeWaveform();
+            const dur = streamAudio.duration;
+            if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
+            audioBuffer = 'stream';
+            pauseOffset = 0;
+            showNotif('success', 'Siap Diputar', 'Tekan play.');
+          }, { once: true });
+          audioBuffer = 'stream';
+        })
+        .catch(e => {
+          drawFakeWaveform();
+          showNotif('error', 'Gagal Muat', 'Audio tidak bisa dimuat. Coba import ulang.');
+        });
+    }, { once: true });
+
+    streamAudio.src = streamUrl;
+    streamAudio.load();
+    audioBuffer = 'stream';
+    showNotif('info', 'Memuat Audio YouTube', 'Streaming via YT Engine...');
     return;
   }
 
