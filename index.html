@@ -1649,28 +1649,20 @@ const YT_ENGINE = 'https://yt-engine-production.up.railway.app';
 
 async function fetchYouTubeMeta(url) {
   const videoId = extractYouTubeId(url);
-  if (!videoId) throw new Error('Invalid YouTube URL. Could not extract video ID.');
+  if (!videoId) throw new Error('Invalid YouTube URL');
 
   let title = 'YouTube - ' + videoId;
   let author = '';
-  let audioUrl = null;
   let duration = '-';
 
-  // 1. Get title via oEmbed
+  // Get title via oEmbed
   try {
-    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-    const res = await fetch(oembedUrl);
-    if (res.ok) {
-      const data = await res.json();
-      title = data.title || title;
-      author = data.author_name || '';
-    }
-  } catch(e) {
-    title = 'YouTube Video - ' + videoId.slice(0,8);
-  }
+    const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+    if (r.ok) { const d = await r.json(); title = d.title || title; author = d.author_name || ''; }
+  } catch(e) {}
 
-  // 2. YT Engine - set stream URL langsung
-  audioUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
+  // Set audio URL langsung ke YT Engine
+  const audioUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
 
   return {
     id: Date.now() + Math.random(),
