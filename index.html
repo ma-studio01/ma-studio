@@ -1177,6 +1177,24 @@ input[type=range].full-range{width:100%}
 // == STATE ==
 let currentUser = null;
 let tracks = [];
+
+function saveLib() {
+  try {
+    const toSave = tracks.map(t => {
+      const obj = { ...t };
+      if (obj.blobData && obj.blobData.startsWith('blob:')) delete obj.blobData;
+      return obj;
+    });
+    localStorage.setItem(userKey('tracks'), JSON.stringify(toSave));
+  } catch(e) {}
+}
+
+function loadLib() {
+  try {
+    const saved = localStorage.getItem(userKey('tracks'));
+    if (saved) tracks = JSON.parse(saved);
+  } catch(e) { tracks = []; }
+}
 let projects = [];
 let currentTrackIndex = -1;
 let audioCtx = null;
@@ -1199,6 +1217,7 @@ function userKey(key) {
   return `mas_${uid}_${key}`;
 }
 function loadUserData() {
+  loadLib();
   projects = JSON.parse(localStorage.getItem(userKey('projects')) || '[]');
   exportCount = parseInt(localStorage.getItem(userKey('exports')) || '0');
 }
@@ -1567,7 +1586,7 @@ function importFile(file) {
       cover: '',
       platform: 'local'
     };
-    tracks.push(track);
+    tracks.push(track); saveLib();
     renderTrackList();
     refreshEditorSelect();
     updateStats();
@@ -1614,7 +1633,7 @@ async function importFromURL() {
 
     document.getElementById(loadId)?.remove();
     if (track) {
-      tracks.push(track);
+      tracks.push(track); saveLib();
       renderTrackList();
       refreshEditorSelect();
       updateStats();
@@ -1801,7 +1820,7 @@ function renderTrackList() {
 function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function removeTrack(i) {
-  tracks.splice(i, 1);
+  tracks.splice(i, 1); saveLib();
   renderTrackList();
   refreshEditorSelect();
   updateStats();
@@ -1811,7 +1830,7 @@ function removeTrack(i) {
 
 function clearLibrary() {
   if (!confirm('Remove all tracks from library?')) return;
-  tracks = [];
+  tracks = []; saveLib();
   renderTrackList();
   refreshEditorSelect();
   updateStats();
