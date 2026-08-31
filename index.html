@@ -1880,7 +1880,7 @@ async function loadAudioForEditor(url) {
   const t = tracks[currentTrackIndex];
 
   // YouTube via YT Engine: pakai HTML Audio (streaming)
-  const isYTStream = url && url.includes('yt-engine-production');
+  const isYTStream = url && url.includes(YT_ENGINE);
   if (isYTStream) {
     // Convert ke /stream/mp3 endpoint
     let streamUrl = url;
@@ -2255,9 +2255,9 @@ async function downloadTrackById(i) {
   const name = (i === currentTrackIndex ? document.getElementById('export-name')?.value : null) || t.name || 'track';
   const fmt = (document.getElementById('export-format')?.value || 'mp3').toLowerCase();
 
-  // YouTube: download via YT Engine (direct stream — no buffering, no timeout)
+  // YouTube: download via YT Engine (direct stream)
   if (t.platform === 'youtube' && t.originalUrl) {
-    showNotif('info', 'Download Dimulai', 'Browser akan mendownload MP3 secara langsung...');
+    showNotif('info', 'Download Dimulai', 'Browser akan mendownload MP3...');
     const dlUrl = YT_ENGINE + '/download/mp3?url=' + encodeURIComponent(t.originalUrl) + '&title=' + encodeURIComponent(name);
     const a = document.createElement('a');
     a.href = dlUrl;
