@@ -1659,12 +1659,46 @@ function isDirectAudioUrl(url) {
   return /\.(mp3|wav|ogg|flac|aac|m4a|opus)(\?.*)?$/i.test(url);
 }
 
-// -- COBALT SELF-HOSTED - YouTube audio --
-// GANTI URL DI BAWAH dengan URL Railway kamu setelah deploy!
-// Deploy di: https://railway.com/deploy/cobalt-youtube-downloader
-// Contoh: 'https://cobalt-xxx.up.railway.app'
+// == COBALT & YT ENGINE CONFIG ==
 let COBALT_API = localStorage.getItem('mas_cobalt_url') || 'https://cobalt-production-bee5.up.railway.app';
 const YT_ENGINE = 'https://yt-engine-production.up.railway.app';
+
+// Resolve YouTube audio URL via Cobalt
+// Return: { url, type } atau throw Error
+async function resolveCobaltAudio(videoUrl) {
+  const base = (window._cobaltUrl || COBALT_API || '').replace(/\/$/, '');
+  if (!base) throw new Error('Cobalt URL belum diset');
+
+  const res = await fetch(base + '/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      url: videoUrl,
+      downloadMode: 'audio',
+      audioFormat: 'mp3',
+      audioBitrate: '128',
+      filenameStyle: 'basic'
+    }),
+    signal: AbortSignal.timeout(20000)
+  });
+
+  if (!res.ok) throw new Error('Cobalt error ' + res.status);
+  const data = await res.json();
+
+  // status bisa: tunnel, redirect, stream, picker
+  if (data.status === 'tunnel' || data.status === 'redirect' || data.status === 'stream') {
+    if (!data.url) throw new Error('Cobalt tidak return URL');
+    return { url: data.url, type: data.status };
+  }
+  if (data.status === 'picker' && data.picker?.length > 0) {
+    // Ambil item audio pertama
+    const audio = data.picker.find(p => p.type === 'audio') || data.picker[0];
+    if (audio?.url) return { url: audio.url, type: 'picker' };
+    throw new Error('Cobalt picker tidak ada audio URL');
+  }
+  if (data.status === 'error') throw new Error(data.error?.code || 'Cobalt error');
+  throw new Error('Cobalt status tidak dikenal: ' + data.status);
+}
 
 async function fetchYouTubeMeta(url) {
   const videoId = extractYouTubeId(url);
@@ -1680,21 +1714,18 @@ async function fetchYouTubeMeta(url) {
     if (r.ok) { const d = await r.json(); title = d.title || title; author = d.author_name || ''; }
   } catch(e) {}
 
-  // Set audio URL langsung ke YT Engine
-  const audioUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
-
   return {
     id: Date.now() + Math.random(),
     name: title,
     source: author || 'YouTube',
     format: 'MP3',
     size: '-',
-    url: audioUrl,
+    url: null, // akan di-resolve saat load ke editor
     duration,
     cover: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
     platform: 'youtube',
     originalUrl: `https://www.youtube.com/watch?v=${videoId}`,
-    cobaltResolved: true
+    cobaltResolved: false
   };
 }
 
@@ -1886,75 +1917,118 @@ let streamAudio = null;
 async function loadAudioForEditor(url) {
   if (!url) return;
   const t = tracks[currentTrackIndex];
+  const isYTTrack = t?.platform === 'youtube';
 
-  // YouTube via YT Engine
-  const isYTStream = url && url.includes(YT_ENGINE);
-  if (isYTStream) {
-    const ytUrl = t?.originalUrl || '';
-    const streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(ytUrl)}`;
+  // Cleanup audio sebelumnya
+  if (streamAudio) {
+    try { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); } catch(e) {}
+    streamAudio = null;
+  }
+  audioBuffer = null;
+  drawFakeWaveform();
 
-    // Cleanup audio sebelumnya
-    if (streamAudio) {
-      try { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); } catch(e) {}
-      streamAudio = null;
-    }
-    audioBuffer = null;
-    drawFakeWaveform();
+  if (isYTTrack) {
+    const ytUrl = t.originalUrl;
+    if (!ytUrl) { showNotif('error', 'Link Hilang', 'Import ulang track ini.'); return; }
 
-    showNotif('info', 'Mengunduh Audio...', 'Sabar ya, server sedang proses (5-20 detik).');
+    showNotif('info', 'Memuat Audio...', 'Mengambil link audio via Cobalt...');
 
-    streamAudio = new Audio();
-    streamAudio.preload = 'auto'; // server sudah punya Content-Length, auto aman
+    let audioUrl = null;
 
-    // Tunggu canplay atau error
-    const loaded = await new Promise((resolve) => {
-      const onCanPlay = () => { cleanup(); resolve(true); };
-      const onError = () => {
-        const code = streamAudio?.error?.code;
-        cleanup();
-        resolve(code === 1 ? null : false); // null = aborted, false = error
-      };
-      const cleanup = () => {
-        streamAudio.removeEventListener('canplay', onCanPlay);
-        streamAudio.removeEventListener('error', onError);
-      };
-      // Timeout 30 detik — server butuh waktu download
-      const timer = setTimeout(() => { cleanup(); resolve(false); }, 30000);
-      streamAudio.addEventListener('canplay', () => { clearTimeout(timer); onCanPlay(); }, { once: true });
-      streamAudio.addEventListener('error', () => { clearTimeout(timer); onError(); }, { once: true });
-      streamAudio.src = streamUrl;
-      streamAudio.load();
-    });
-
-    if (loaded === null) return; // user aborted / ganti track
-
-    if (loaded === false) {
-      drawFakeWaveform();
-      showNotif('error', 'Gagal Muat Audio', 'Server gagal proses audio. Coba import ulang.');
-      streamAudio = null;
-      return;
+    // === STEP 1: Coba Cobalt (paling reliable, handle anti-bot YouTube) ===
+    try {
+      const cobaltResult = await resolveCobaltAudio(ytUrl);
+      audioUrl = cobaltResult.url;
+      console.log('[editor] Cobalt OK:', cobaltResult.type, audioUrl.slice(0, 60));
+    } catch(cobaltErr) {
+      console.warn('[editor] Cobalt gagal:', cobaltErr.message);
+      // === STEP 2: Fallback ke YT Engine ===
+      audioUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(ytUrl)}`;
+      showNotif('info', 'Cobalt gagal, coba YT Engine...', '');
     }
 
-    // Berhasil
-    const dur = streamAudio.duration;
-    if (t && dur && isFinite(dur)) {
-      t.duration = fmtTime(dur);
-      renderTrackList();
-      updateStats();
-    }
-    audioBuffer = 'stream';
-    pauseOffset = 0;
-    showNotif('success', 'Siap Diputar', 'Audio siap! Tekan play.');
+    // Play audio dari URL yang didapat
+    await _playAudioUrl(audioUrl, t);
     return;
   }
 
+  // File lokal / direct URL: WebAudio API
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   fetch(url).then(r => r.arrayBuffer()).then(buf => audioCtx.decodeAudioData(buf)).then(decoded => {
     audioBuffer = decoded;
     pauseOffset = 0;
     drawWaveform(decoded);
     if (t) { t.duration = fmtTime(decoded.duration); renderTrackList(); updateStats(); }
-  }).catch(() => { drawFakeWaveform(); showNotif('error', 'Load Failed', 'Audio format may not be supported by this browser.'); });
+  }).catch(() => { drawFakeWaveform(); showNotif('error', 'Load Failed', 'Audio format tidak didukung browser ini.'); });
+}
+
+// Helper: play audio dari URL langsung (Cobalt tunnel/redirect URL atau YT Engine)
+async function _playAudioUrl(audioUrl, t) {
+  streamAudio = new Audio();
+  streamAudio.preload = 'auto';
+  streamAudio.crossOrigin = 'anonymous'; // diperlukan untuk Cobalt tunnel URLs
+
+  const loaded = await new Promise((resolve) => {
+    const cleanup = () => {
+      streamAudio.removeEventListener('canplay', onOk);
+      streamAudio.removeEventListener('error', onErr);
+    };
+    const onOk = () => { cleanup(); resolve(true); };
+    const onErr = () => {
+      const code = streamAudio?.error?.code;
+      cleanup();
+      resolve(code === 1 ? null : false);
+    };
+    const timer = setTimeout(() => { cleanup(); resolve(false); }, 35000);
+    streamAudio.addEventListener('canplay', () => { clearTimeout(timer); onOk(); }, { once: true });
+    streamAudio.addEventListener('error', () => { clearTimeout(timer); onErr(); }, { once: true });
+    streamAudio.src = audioUrl;
+    streamAudio.load();
+  });
+
+  if (loaded === null) return; // user pindah track
+
+  if (!loaded) {
+    // Cobalt URL gagal, coba tanpa crossOrigin (beberapa CDN tidak support)
+    if (streamAudio.crossOrigin) {
+      streamAudio = new Audio();
+      streamAudio.preload = 'auto';
+      const loaded2 = await new Promise((resolve) => {
+        const cleanup = () => {
+          streamAudio.removeEventListener('canplay', onOk);
+          streamAudio.removeEventListener('error', onErr);
+        };
+        const onOk = () => { cleanup(); resolve(true); };
+        const onErr = () => { cleanup(); resolve(false); };
+        const timer = setTimeout(() => { cleanup(); resolve(false); }, 20000);
+        streamAudio.addEventListener('canplay', () => { clearTimeout(timer); onOk(); }, { once: true });
+        streamAudio.addEventListener('error', () => { clearTimeout(timer); onErr(); }, { once: true });
+        streamAudio.src = audioUrl;
+        streamAudio.load();
+      });
+      if (!loaded2) {
+        drawFakeWaveform();
+        showNotif('error', 'Gagal Muat Audio', 'Audio tidak bisa dimuat. Coba import ulang track.');
+        streamAudio = null;
+        return;
+      }
+    } else {
+      drawFakeWaveform();
+      showNotif('error', 'Gagal Muat Audio', 'Audio tidak bisa dimuat. Coba import ulang track.');
+      streamAudio = null;
+      return;
+    }
+  }
+
+  const dur = streamAudio.duration;
+  if (t && dur && isFinite(dur)) {
+    t.duration = fmtTime(dur);
+    renderTrackList();
+    updateStats();
+  }
+  audioBuffer = 'stream';
+  pauseOffset = 0;
+  showNotif('success', 'Siap Diputar', 'Audio siap! Tekan play.');
 }
 
 function drawWaveform(buffer) {
