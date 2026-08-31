@@ -1974,12 +1974,10 @@ function togglePlay() {
         if (!streamAudio) return;
         const cur = streamAudio.currentTime;
         const dur = isFinite(streamAudio.duration) ? streamAudio.duration : 0;
-        const ct = document.getElementById('current-time');
-        const tt = document.getElementById('total-time');
-        const pf = document.getElementById('progress-fill');
+        const tt = document.getElementById('transport-time');
+        const pf = document.getElementById('progress-bar');
         const ph = document.getElementById('playhead');
-        if (ct) ct.textContent = fmtTime(cur);
-        if (tt) tt.textContent = fmtTime(dur);
+        if (tt) tt.textContent = `${fmtTime(cur)} / ${fmtTime(dur)}`;
         if (dur > 0) {
           if (pf) pf.style.width = (cur / dur * 100) + '%';
           if (ph) ph.style.left = (cur / dur * 100) + '%';
