@@ -1891,22 +1891,34 @@ async function loadAudioForEditor(url) {
     }
 
     if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio = null; }
-    streamAudio = new Audio(streamUrl);
-    streamAudio.preload = 'auto';
 
-    streamAudio.addEventListener('loadedmetadata', () => {
-      drawFakeWaveform();
-      const dur = streamAudio.duration;
-      if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
+    // Fetch as blob dulu biar mobile Chrome bisa play
+    showNotif('info', 'Mengunduh Audio...', 'Mohon tunggu beberapa detik...');
+    try {
+      const fetchRes = await fetch(streamUrl);
+      if (!fetchRes.ok) throw new Error('Fetch gagal: ' + fetchRes.status);
+      const blob = await fetchRes.blob();
+      if (blob.size < 1000) throw new Error('File terlalu kecil');
+      const blobUrl = URL.createObjectURL(blob);
+      streamAudio = new Audio(blobUrl);
+      streamAudio.preload = 'auto';
+      streamAudio.addEventListener('loadedmetadata', () => {
+        drawFakeWaveform();
+        const dur = streamAudio.duration;
+        if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
+        audioBuffer = 'stream';
+        pauseOffset = 0;
+        showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
+      });
+      streamAudio.addEventListener('error', (e) => {
+        drawFakeWaveform();
+        showNotif('error', 'Gagal Muat', 'Audio gagal dimuat. Coba import ulang.');
+      });
       audioBuffer = 'stream';
-      pauseOffset = 0;
-      showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
-    });
-    streamAudio.addEventListener('error', () => {
+    } catch(e) {
       drawFakeWaveform();
-      showNotif('error', 'Gagal Muat', 'Audio YouTube gagal dimuat. Coba import ulang.');
-    });
-    audioBuffer = 'stream';
+      showNotif('error', 'Gagal Muat', e.message || 'Gagal mengunduh audio.');
+    }
     return;
   }
 
