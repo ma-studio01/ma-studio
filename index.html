@@ -1790,7 +1790,7 @@ function renderTrackList() {
           ${t.originalUrl ? `<button class="icon-btn" title="Open Source" onclick="window.open('${escHtml(t.originalUrl)}','_blank')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>` : ''}
           <button class="icon-btn" title="Download" onclick="downloadTrackById(${i})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
           <button class="icon-btn" title="Remove" onclick="removeTrack(${i})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-          ${(t.blobData || t.platform === 'direct') ? `<button class="icon-btn" title="Publish to Roblox" onclick="openRblxPublish(${i})" style="color:rgba(255,80,80,.8)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>` : ''}
+          ${t.platform !== 'spotify' ? `<button class="icon-btn" title="Publish to Roblox" onclick="openRblxPublish(${i})" style="color:rgba(255,80,80,.8)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>` : ''}
         </div>
       </div>
       ${t.rblxAssetId ? `<div style="padding:5px 0 2px 44px"><span class="rblx-id-badge" onclick="navigator.clipboard.writeText('${t.rblxAssetId}');showNotif('success','Copied!','Asset ID disalin.')" title="Click to copy">rbxassetid://${escHtml(t.rblxAssetId)} </span></div>` : ''}
@@ -2026,10 +2026,15 @@ function pauseAudio() {
 }
 
 function stopAudio() {
-  if (streamAudio) { try { streamAudio.pause(); streamAudio.currentTime = 0; } catch(e){} }
+  if (streamAudio) {
+    try { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); } catch(e){}
+    streamAudio = null;
+  }
   if (audioSource && isPlaying) { try { audioSource.stop(); } catch(e){} }
+  audioSource = null;
+  audioBuffer = null;
   isPlaying = false; pauseOffset = 0; updatePlayIcon(false);
-  cancelAnimationFrame(animFrame);
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
   document.getElementById('progress-bar').style.width = '0%';
   document.getElementById('playhead').style.left = '0%';
   document.getElementById('transport-time').textContent = '0:00 / 0:00';
@@ -2527,9 +2532,9 @@ function openRblxPublish(trackIdx) {
     return;
   }
 
-  // Only local files (with blob url) can be published
-  if (!t.blobData && !t.url) {
-    showNotif('error', 'Tidak Bisa Publish', 'Hanya file lokal yang di-import langsung yang bisa dipublish. Track streaming tidak bisa diupload.');
+  // Cek track punya sumber audio
+  if (!t.blobData && !t.url && !t.originalUrl) {
+    showNotif('error', 'Tidak Bisa Publish', 'Track ini tidak punya sumber audio.');
     return;
   }
 
@@ -2593,12 +2598,19 @@ async function publishToRoblox(track, apiKey) {
     // Local imported file - stored as data URL
     const res = await fetch(track.blobData);
     blob = await res.blob();
+  } else if (track.platform === 'youtube' && track.originalUrl) {
+    // YouTube: download via YT Engine dulu
+    const dlUrl = YT_ENGINE + '/download/mp3?url=' + encodeURIComponent(track.originalUrl);
+    const res = await fetch(dlUrl);
+    if (!res.ok) throw new Error('Gagal download audio dari YouTube. Pastikan engine aktif.');
+    blob = await res.blob();
+    if (blob.size < 1000) throw new Error('Audio terlalu kecil, coba lagi.');
   } else if (track.url && track.platform === 'direct') {
     const res = await fetch(track.url);
     if (!res.ok) throw new Error('Gagal fetch audio dari URL.');
     blob = await res.blob();
   } else {
-    throw new Error('Track ini tidak punya file audio lokal. Hanya file yang diimport langsung yang bisa dipublish.');
+    throw new Error('Track ini tidak punya sumber audio yang valid.');
   }
 
   // Check format
