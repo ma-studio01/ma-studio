@@ -1862,31 +1862,20 @@ function selectEditorTrack() {
   const t = tracks[idx];
   document.getElementById('export-name').value = t.name;
   stopAudio();
-  if (t.url && t.platform !== 'spotify') {
-    if (t.platform === 'youtube' && t.cobaltResolved) {
-      showNotif('info', 'Memuat Audio YouTube', 'Streaming via YT Engine...');
-    }
-    loadAudioForEditor(t.url);
-  } else if (t.platform === 'spotify') {
+  if (t.platform === 'spotify') {
     drawFakeWaveform();
     showNotif('info', 'Spotify', 'Track Spotify tidak bisa diputar langsung. Buka di Spotify.');
-  } else if (t.platform === 'youtube' && !t.url && t.originalUrl) {
-    drawFakeWaveform();
-    showNotif('info', 'Memuat YouTube...', 'Streaming via YT Engine...');
-    // Coba fetch ulang via Cobalt
-    (async () => {
-      try {
-        const audioUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}`;
-        t.url = audioUrl;
-        t.cobaltResolved = true;
-        loadAudioForEditor(audioUrl);
-      } catch(e) {
-        showNotif('error', 'YouTube Gagal', 'YT Engine error: ' + e.message);
-      }
-    })();
-  } else if (t.platform === 'youtube' && !t.url) {
-    drawFakeWaveform();
-    showNotif('error', 'YouTube Gagal', 'Coba import ulang link YouTube ini.');
+  } else if (t.platform === 'youtube') {
+    // Selalu pakai originalUrl ke /stream/mp3 — paling reliable
+    if (t.originalUrl) {
+      const streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(t.originalUrl)}`;
+      loadAudioForEditor(streamUrl);
+    } else {
+      drawFakeWaveform();
+      showNotif('error', 'YouTube Gagal', 'Link YouTube tidak ditemukan. Import ulang.');
+    }
+  } else if (t.url) {
+    loadAudioForEditor(t.url);
   } else {
     drawFakeWaveform();
   }
@@ -1901,13 +1890,10 @@ async function loadAudioForEditor(url) {
   // YouTube via YT Engine: pakai HTML Audio (streaming)
   const isYTStream = url && url.includes(YT_ENGINE);
   if (isYTStream) {
-    // Convert ke /stream/mp3 endpoint
-    let streamUrl = url;
-    if (url.includes('/download/mp3')) {
-      streamUrl = url.replace('/download/mp3', '/stream/mp3').split('&title')[0];
-    } else if (!url.includes('/stream/mp3')) {
-      streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(t?.originalUrl || '')}`;
-    }
+    // streamUrl sudah pasti /stream/mp3 dari selectEditorTrack
+    const streamUrl = url.includes('/stream/mp3') ? url : 
+      url.includes('/download/mp3') ? url.replace('/download/mp3', '/stream/mp3').split('&title')[0] :
+      `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(t?.originalUrl || '')}`;
 
     if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); streamAudio = null; }
 
