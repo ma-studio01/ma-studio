@@ -1887,61 +1887,107 @@ async function loadAudioForEditor(url) {
   if (!url) return;
   const t = tracks[currentTrackIndex];
 
-  // YouTube via YT Engine: pakai HTML Audio (streaming)
+  // YouTube via YT Engine: pakai blob fetch agar tidak kena CORS block
   const isYTStream = url && url.includes(YT_ENGINE);
   if (isYTStream) {
-    // streamUrl sudah pasti /stream/mp3 dari selectEditorTrack
-    const streamUrl = url.includes('/stream/mp3') ? url : 
-      url.includes('/download/mp3') ? url.replace('/download/mp3', '/stream/mp3').split('&title')[0] :
-      `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(t?.originalUrl || '')}`;
+    const ytUrl = t?.originalUrl || '';
+    const streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(ytUrl)}`;
 
-    if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); streamAudio = null; }
+    // Cleanup audio sebelumnya
+    if (streamAudio) {
+      try { streamAudio.pause(); streamAudio.src = ''; streamAudio.load(); } catch(e) {}
+      streamAudio = null;
+    }
+    audioBuffer = null;
 
-    // Direct stream - works on all devices including mobile
-    // Railway streams chunked, audio element handles buffering natively
-    streamAudio = new Audio();
-    streamAudio.preload = 'auto';
-    streamAudio.controls = false;
+    showNotif('info', 'Memuat Audio YouTube', 'Mengambil audio, mohon tunggu...');
+    drawFakeWaveform();
 
-    streamAudio.addEventListener('canplay', () => {
+    // === STRATEGI UTAMA: fetch sebagai blob, lalu buat Object URL ===
+    // Ini menghindari CORS cross-origin block pada HTMLAudioElement.src
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
+
+      const resp = await fetch(streamUrl, {
+        signal: controller.signal,
+        headers: { 'Accept': 'audio/mpeg, audio/*, */*' }
+      });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) throw new Error(`Server error ${resp.status}`);
+
+      const blob = await resp.blob();
+      if (!blob || blob.size < 2000) throw new Error('Audio kosong atau terlalu kecil');
+
+      const blobUrl = URL.createObjectURL(blob);
+      streamAudio = new Audio();
+      streamAudio.crossOrigin = 'anonymous';
+      streamAudio.preload = 'auto';
+      streamAudio.controls = false;
+
+      await new Promise((resolve, reject) => {
+        const onCanPlay = () => {
+          cleanup();
+          resolve();
+        };
+        const onError = (e) => {
+          cleanup();
+          reject(new Error('Audio element error: ' + (streamAudio?.error?.message || e.type)));
+        };
+        const cleanup = () => {
+          streamAudio.removeEventListener('canplay', onCanPlay);
+          streamAudio.removeEventListener('error', onError);
+        };
+        streamAudio.addEventListener('canplay', onCanPlay, { once: true });
+        streamAudio.addEventListener('error', onError, { once: true });
+        streamAudio.src = blobUrl;
+        streamAudio.load();
+        // Fallback jika canplay tidak fired dalam 8 detik (blob sudah ada, pasti bisa)
+        setTimeout(() => { cleanup(); resolve(); }, 8000);
+      });
+
       drawFakeWaveform();
       const dur = streamAudio.duration;
       if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
       audioBuffer = 'stream';
       pauseOffset = 0;
       showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
-    }, { once: true });
 
-    streamAudio.addEventListener('error', () => {
-      // Fallback: coba fetch blob kalau direct stream gagal
-      showNotif('info', 'Mencoba metode lain...', '');
-      fetch(streamUrl)
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); })
-        .then(blob => {
-          if (blob.size < 1000) throw new Error('File kosong');
-          const blobUrl = URL.createObjectURL(blob);
-          streamAudio = new Audio(blobUrl);
-          streamAudio.preload = 'auto';
-          streamAudio.addEventListener('canplay', () => {
-            drawFakeWaveform();
-            const dur = streamAudio.duration;
-            if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
-            audioBuffer = 'stream';
-            pauseOffset = 0;
-            showNotif('success', 'Siap Diputar', 'Tekan play.');
-          }, { once: true });
-          audioBuffer = 'stream';
-        })
-        .catch(e => {
-          drawFakeWaveform();
-          showNotif('error', 'Gagal Muat', 'Audio tidak bisa dimuat. Coba import ulang.');
+    } catch(err) {
+      // === FALLBACK: coba direct Audio src dengan crossOrigin ===
+      showNotif('info', 'Mencoba streaming langsung...', '');
+      try {
+        if (streamAudio) { try { streamAudio.pause(); streamAudio.src = ''; } catch(e) {} streamAudio = null; }
+
+        streamAudio = new Audio();
+        streamAudio.crossOrigin = 'anonymous';
+        streamAudio.preload = 'auto';
+
+        await new Promise((resolve, reject) => {
+          const onReady = () => { cleanup(); resolve(); };
+          const onErr = () => { cleanup(); reject(new Error('Direct stream gagal')); };
+          const cleanup = () => {
+            streamAudio.removeEventListener('canplay', onReady);
+            streamAudio.removeEventListener('error', onErr);
+          };
+          streamAudio.addEventListener('canplay', onReady, { once: true });
+          streamAudio.addEventListener('error', onErr, { once: true });
+          streamAudio.src = streamUrl;
+          streamAudio.load();
+          setTimeout(() => { cleanup(); resolve(); }, 12000); // 12s fallback
         });
-    }, { once: true });
 
-    streamAudio.src = streamUrl;
-    streamAudio.load();
-    audioBuffer = 'stream';
-    showNotif('info', 'Memuat Audio YouTube', 'Streaming via YT Engine...');
+        drawFakeWaveform();
+        audioBuffer = 'stream';
+        pauseOffset = 0;
+        showNotif('success', 'Siap Diputar', 'Tekan play.');
+      } catch(err2) {
+        drawFakeWaveform();
+        showNotif('error', 'Gagal Muat Audio', 'Pastikan YT Engine online & link YouTube valid. Coba import ulang.');
+        streamAudio = null;
+      }
+    }
     return;
   }
 
