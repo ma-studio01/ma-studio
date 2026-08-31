@@ -2599,12 +2599,15 @@ async function publishToRoblox(track, apiKey) {
     const res = await fetch(track.blobData);
     blob = await res.blob();
   } else if (track.platform === 'youtube' && track.originalUrl) {
-    // YouTube: download via YT Engine dulu
-    const dlUrl = YT_ENGINE + '/download/mp3?url=' + encodeURIComponent(track.originalUrl);
-    const res = await fetch(dlUrl);
-    if (!res.ok) throw new Error('Gagal download audio dari YouTube. Pastikan engine aktif.');
-    blob = await res.blob();
-    if (blob.size < 1000) throw new Error('Audio terlalu kecil, coba lagi.');
+    // YouTube: server yang download + upload langsung ke Roblox (bypass browser timeout)
+    const serverRes = await fetch(YT_ENGINE + '/publish/roblox', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: track.originalUrl, title: track.name, apiKey })
+    });
+    const serverData = await serverRes.json();
+    if (!serverRes.ok) throw new Error(serverData.error || 'Gagal publish via server.');
+    return serverData.assetId;
   } else if (track.url && track.platform === 'direct') {
     const res = await fetch(track.url);
     if (!res.ok) throw new Error('Gagal fetch audio dari URL.');
