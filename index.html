@@ -2260,13 +2260,8 @@ async function downloadTrackById(i) {
     showNotif('info', 'Menyiapkan...', 'Menghubungi YT Engine...');
     try { await fetch(YT_ENGINE, { signal: AbortSignal.timeout(8000) }); } catch(e) {}
     const dlUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
-    const a = document.createElement('a');
-    a.href = dlUrl;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Buka di tab baru - paling reliable di mobile
+    window.open(dlUrl, '_blank');
     exportCount++;
     localStorage.setItem(userKey('exports'), exportCount);
     document.getElementById('stat-exports').textContent = exportCount;
