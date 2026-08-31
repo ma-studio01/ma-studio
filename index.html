@@ -1892,8 +1892,7 @@ async function loadAudioForEditor(url) {
 
     if (streamAudio) { streamAudio.pause(); streamAudio.src = ''; streamAudio = null; }
     streamAudio = new Audio(streamUrl);
-    streamAudio.crossOrigin = 'anonymous';
-    streamAudio.preload = 'metadata';
+    streamAudio.preload = 'auto';
 
     streamAudio.addEventListener('loadedmetadata', () => {
       drawFakeWaveform();
