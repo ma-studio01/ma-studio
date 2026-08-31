@@ -28,14 +28,14 @@
   --info: rgba(255,255,255,0.10);
   --sidebar-w: 228px;
   --r: 14px;
-  --r2: 8px;
-  --r3: 18px;
+  --r2: 12px;
+  --r3: 20px;
   --shadow: 0 8px 40px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.06) inset;
   --shadow2: 0 20px 60px rgba(0,0,0,0.8);
   --blur: blur(28px) saturate(180%);
   --blur2: blur(14px) saturate(160%);
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:'Inter',sans-serif;background:#000;color:var(--t1);min-height:100vh;overflow-x:hidden}
 /* Ambient background blobs */
@@ -74,10 +74,10 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 .auth-tab{flex:1;padding:9px;border-radius:var(--r2);font-size:.82rem;font-weight:600;cursor:pointer;color:var(--t2);border:none;background:none;transition:all .2s;font-family:'Inter',sans-serif}
 .auth-tab.active{background:var(--bg4);color:var(--t1)}
 .auth-form{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-.auth-input{background:rgba(255,255,255,0.07);border:1px solid var(--border2);border-radius:12px;color:#fff;padding:12px 16px;font-size:.875rem;outline:none;transition:all .2s;font-family:'Inter',sans-serif;width:100%}
-.auth-input:focus{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,0.10)}
+.auth-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;color:#fff;padding:12px 16px;font-size:.875rem;outline:none;transition:all .22s;font-family:'Inter',sans-serif;width:100%}
+.auth-input:focus{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.09)}
 .auth-input::placeholder{color:var(--t3)}
-.btn-white{background:#fff;color:#000;border:none;border-radius:14px;padding:13px 24px;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:all .2s;font-family:'Inter',sans-serif;letter-spacing:.2px}
+.btn-white{background:#fff;color:#000;border:none;border-radius:50px;padding:13px 24px;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:all .22s cubic-bezier(.4,0,.2,1);font-family:'Inter',sans-serif;letter-spacing:.3px;box-shadow:0 4px 20px rgba(255,255,255,.15)}
 .btn-white:hover{background:#e8e8e8;transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,255,255,.18)}
 .auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0}
 .auth-divider hr{flex:1;border:none;border-top:1px solid var(--border)}
@@ -113,7 +113,7 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 /* -- ROBLOX PUBLISH -- */
 .rblx-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(14px);z-index:8000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
 .rblx-modal-overlay.show{opacity:1;pointer-events:all}
-.rblx-modal{background:rgba(18,18,18,0.92);border:1px solid var(--border2);border-radius:24px;padding:32px 28px;width:90%;max-width:440px;box-shadow:var(--shadow2);animation:fadeSlideUp .2s ease;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.rblx-modal{background:rgba(14,14,16,0.96);border:1px solid var(--border2);border-radius:28px;padding:32px 28px;width:90%;max-width:440px;box-shadow:var(--shadow2);animation:fadeSlideUp .2s ease;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
 .rblx-modal-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:10px}
 .rblx-modal-sub{color:rgba(255,255,255,.45);font-size:.78rem;margin-bottom:20px}
 .rblx-track-name{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -157,11 +157,11 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 .topbar-menu-btn{display:flex;background:none;border:none;color:var(--t1);cursor:pointer;padding:4px}
 .topbar-title{font-size:.9rem;font-weight:600;flex:1;letter-spacing:.2px}
 .topbar-actions{display:flex;align-items:center;gap:8px}
-.btn{padding:7px 16px;border-radius:50px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.2px;font-family:'Inter',sans-serif}
-.btn-outline{background:rgba(255,255,255,0.06);color:var(--t2);border:1px solid var(--border2);backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
+.btn{padding:8px 18px;border-radius:50px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;transition:all .22s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:6px;letter-spacing:.3px;font-family:'Inter',sans-serif;white-space:nowrap}
+.btn-outline{background:rgba(255,255,255,0.05);color:var(--t2);border:1px solid rgba(255,255,255,.12);backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
 .btn-outline:hover{background:rgba(255,255,255,0.12);color:#fff;border-color:var(--border3)}
-.btn-solid{background:#fff;color:#000;box-shadow:0 4px 16px rgba(255,255,255,.15)}
-.btn-solid:hover{background:#f0f0f0;transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,255,255,.22)}
+.btn-solid{background:#fff;color:#000;box-shadow:0 2px 12px rgba(255,255,255,.12),0 0 0 0 rgba(255,255,255,0)}
+.btn-solid:hover{background:#f5f5f5;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,255,255,.2)}
 .btn-ghost{background:rgba(255,255,255,0.04);color:var(--t2);border:1px solid var(--border)}
 .btn-ghost:hover{background:rgba(255,255,255,0.10);color:#fff;border-color:var(--border2)}
 .btn-danger{background:var(--danger);color:#fff}
@@ -175,7 +175,7 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 /* -- STATS -- */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
 .stat-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r3);padding:18px;transition:all .2s;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
-.stat-card:hover{border-color:var(--border2);background:var(--glass2);transform:translateY(-1px)}
+.stat-card:hover{border-color:rgba(255,255,255,.13);background:rgba(255,255,255,.07);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .stat-icon-wrap{width:36px;height:36px;border-radius:var(--r2);background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;margin-bottom:12px}
 .stat-value{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700}
 .stat-label{font-size:.72rem;color:var(--t2);margin-top:2px}
@@ -186,8 +186,8 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 .section-title-action:hover{color:#fff}
 
 /* -- IMPORT ZONE -- */
-.import-zone{border:1.5px dashed var(--border2);border-radius:var(--r3);padding:32px 20px;text-align:center;background:var(--glass);cursor:pointer;transition:all .2s;margin-bottom:20px;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
-.import-zone:hover,.import-zone.dragover{border-color:rgba(255,255,255,.35);background:var(--glass2);transform:translateY(-1px)}
+.import-zone{border:1.5px dashed rgba(255,255,255,.13);border-radius:24px;padding:32px 20px;text-align:center;background:rgba(255,255,255,.03);cursor:pointer;transition:all .22s cubic-bezier(.4,0,.2,1);margin-bottom:20px;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
+.import-zone:hover,.import-zone.dragover{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06);transform:translateY(-1px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
 .import-zone-icon{display:flex;justify-content:center;margin-bottom:12px;color:var(--t3)}
 .import-zone h3{font-size:.9rem;font-weight:600;margin-bottom:5px}
 .import-zone p{color:var(--t2);font-size:.78rem}
@@ -197,8 +197,8 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 /* -- URL IMPORT -- */
 .url-import-wrap{margin-bottom:24px}
 .url-import-row{display:flex;gap:8px}
-.url-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:50px;color:#fff;padding:10px 18px;font-size:.82rem;outline:none;font-family:'Inter',sans-serif;transition:border-color .2s}
-.url-input:focus{border-color:rgba(255,255,255,.3)}
+.url-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:50px;color:#fff;padding:10px 20px;font-size:.82rem;outline:none;font-family:'Inter',sans-serif;transition:all .2s}
+.url-input:focus{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.07)}
 .url-input::placeholder{color:var(--t3)}
 .platform-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .platform-tag{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);color:var(--t3);font-size:.68rem;padding:4px 10px;border-radius:20px;cursor:default}
@@ -210,9 +210,9 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 /* -- TRACK LIST -- */
 .track-list{display:flex;flex-direction:column;gap:6px}
 .track-empty{text-align:center;padding:40px;color:var(--t3);font-size:.82rem;display:flex;flex-direction:column;align-items:center;gap:10px}
-.track-item{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:0;transition:all .2s;cursor:pointer;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
+.track-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:0;transition:all .22s cubic-bezier(.4,0,.2,1);cursor:pointer;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
 .track-item-row{display:flex;align-items:center;gap:12px;width:100%}
-.track-item:hover{border-color:var(--border2);background:var(--glass2);transform:translateY(-1px)}
+.track-item:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.07);transform:translateY(-1px);box-shadow:0 4px 24px rgba(0,0,0,.3)}
 .track-thumb{width:42px;height:42px;border-radius:var(--r2);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:1px solid var(--border)}
 .track-thumb img{width:100%;height:100%;object-fit:cover}
 .track-info{flex:1;min-width:0}
@@ -221,8 +221,8 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 .track-source-badge{font-size:.6rem;font-weight:600;padding:1px 7px;border-radius:10px;background:rgba(255,255,255,.07);color:var(--t2)}
 .track-dur{font-size:.72rem;color:var(--t3);flex-shrink:0}
 .track-actions{display:flex;gap:4px;flex-shrink:0}
-.icon-btn{width:30px;height:30px;border-radius:var(--r2);background:transparent;border:1px solid var(--border);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.icon-btn:hover{background:var(--bg4);color:#fff;border-color:var(--border2)}
+.icon-btn{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s cubic-bezier(.4,0,.2,1)}
+.icon-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.18);transform:scale(1.05)}
 
 /* -- IMPORT LOADING CARD -- */
 .import-loading{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;display:flex;align-items:center;gap:12px;animation:fadein .3s}
@@ -232,14 +232,14 @@ body::after{content:'';position:fixed;bottom:-20vh;right:-10vw;width:50vw;height
 
 /* -- EDITOR -- */
 .editor-layout{display:flex;flex-direction:column;gap:16px}
-.editor-section{background:var(--glass);border:1px solid var(--border);border-radius:var(--r3);padding:18px;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
+.editor-section{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
 .waveform-wrap{background:#0d0d0d;border-radius:var(--r2);height:110px;position:relative;overflow:hidden;cursor:crosshair;margin-bottom:10px}
 #waveformCanvas{width:100%;height:100%}
 .playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;pointer-events:none}
 .timeline{display:flex;justify-content:space-between;font-size:.65rem;color:var(--t3);padding:0 2px}
 .transport{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.play-btn{width:42px;height:42px;border-radius:50%;background:#fff;color:#000;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.play-btn:hover{background:#e0e0e0;transform:scale(1.05)}
+.play-btn{width:44px;height:44px;border-radius:50%;background:#fff;color:#000;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .22s cubic-bezier(.4,0,.2,1);flex-shrink:0;box-shadow:0 4px 16px rgba(255,255,255,.15)}
+.play-btn:hover{background:#f0f0f0;transform:scale(1.07);box-shadow:0 6px 24px rgba(255,255,255,.22)}
 .transport-time{font-family:monospace;font-size:.85rem;color:var(--t2);min-width:90px}
 .progress-wrap{flex:1;height:4px;background:var(--bg4);border-radius:2px;cursor:pointer;position:relative;min-width:60px}
 .progress-fill{height:100%;background:#fff;border-radius:2px;width:0}
@@ -254,7 +254,7 @@ input[type=range].full-range{width:100%}
 .export-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
 .field-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
 .field-label{font-size:.7rem;color:var(--t2);font-weight:500}
-.field-input,.field-select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);color:#fff;padding:8px 12px;font-size:.82rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+.field-input,.field-select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:12px;color:#fff;padding:9px 12px;font-size:.82rem;font-family:'Inter',sans-serif;outline:none;transition:all .2s}
 .field-input:focus,.field-select:focus{border-color:rgba(255,255,255,.3)}
 .field-select option{background:#1a1a1a}
 
@@ -289,11 +289,11 @@ input[type=range].full-range{width:100%}
 
 /* -- SETTINGS -- */
 .settings-layout{display:grid;grid-template-columns:190px 1fr;gap:16px}
-.settings-nav{background:var(--glass);border:1px solid var(--border);border-radius:18px;padding:10px;height:fit-content;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
+.settings-nav{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:10px;height:fit-content;backdrop-filter:var(--blur2);-webkit-backdrop-filter:var(--blur2)}
 .settings-nav-item{padding:9px 12px;border-radius:10px;font-size:.8rem;cursor:pointer;color:var(--t2);transition:all .15s;margin-bottom:2px}
 .settings-nav-item:hover{background:var(--glass3);color:#fff}
-.settings-nav-item.active{background:rgba(255,255,255,.12);color:#fff;font-weight:600}
-.settings-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.settings-nav-item.active{background:rgba(255,255,255,.11);color:#fff;font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.settings-panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:22px}
 .setting-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);gap:12px}
 .setting-row:last-child{border-bottom:none}
 .setting-info h4{font-size:.82rem;font-weight:600;margin-bottom:2px}
@@ -333,16 +333,16 @@ input[type=range].full-range{width:100%}
 .credit-link:hover{color:#fff}
 
 /* -- MODAL -- */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(20px) saturate(180%);z-index:500;display:none;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
-.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;width:90%;max-width:400px;box-shadow:var(--shadow)}
+.modal-box{background:rgba(14,14,16,.97);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:28px;width:90%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.8);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
 .modal-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:5px}
 .modal-sub{color:var(--t2);font-size:.78rem;margin-bottom:18px}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 
 /* -- NOTIFICATIONS -- */
 #notif-stack{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.notif{background:rgba(22,22,22,0.88);border:1px solid var(--border2);border-radius:16px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;min-width:260px;max-width:340px;box-shadow:var(--shadow2);pointer-events:all;transition:all .3s;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.notif{background:rgba(18,18,20,.95);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;min-width:260px;max-width:340px;box-shadow:0 16px 48px rgba(0,0,0,.7);pointer-events:all;transition:all .3s cubic-bezier(.4,0,.2,1);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
 .notif-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .notif.success .notif-icon{background:rgba(48,209,88,.15);color:var(--success)}
 .notif.error .notif-icon{background:rgba(255,69,58,.15);color:var(--danger)}
@@ -2467,7 +2467,7 @@ function renderSettings(tab) {
       <h3 style="font-size:.9rem;font-weight:700;margin-bottom:14px">General</h3>
       <div class="setting-row"><div class="setting-info"><h4>Notifications</h4><p>Show activity notifications</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
       <div class="setting-row"><div class="setting-info"><h4>Auto-Save</h4><p>Automatically save changes</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
-      <div class="setting-row"><div class="setting-info"><h4>Language</h4><p>Interface language</p></div><select class="field-select"><option>English</option><option>Bahasa Indonesia</option></select></div>
+      <div class="setting-row"><div class="setting-info"><h4>Language</h4><p>Interface language</p></div><select class="field-select" onchange="localStorage.setItem('mas_lang',this.value);showNotif('success','Saved','Language saved.')" style="min-width:160px"><option ${localStorage.getItem('mas_lang')==='Bahasa Indonesia'?'':'selected'}>English</option><option ${localStorage.getItem('mas_lang')==='Bahasa Indonesia'?'selected':''}>Bahasa Indonesia</option></select></div>
       <div class="setting-row"><div class="setting-info"><h4>Sign Out</h4><p>Sign out of this account</p></div><button class="btn btn-danger" onclick="logout()">Sign Out</button></div>
     `,
     appearance: `
@@ -2486,22 +2486,22 @@ function renderSettings(tab) {
       <div class="setting-row"><div class="setting-info"><h4>Name</h4><p>${escHtml(currentUser?.name||'-')}</p></div></div>
       <div class="setting-row"><div class="setting-info"><h4>Login via</h4><p>${currentUser?.provider === 'discord' ? ' Discord' : 'Email'}</p></div></div>
       <div class="setting-row"><div class="setting-info"><h4>Plan</h4><p>${escHtml(currentUser?.role||'Free')}</p></div><button class="btn btn-solid" onclick="showPage('premium',document.getElementById('nav-premium'))">Upgrade</button></div>
-      <div class="setting-row" style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
-        <div class="setting-info"><h4>Discord OAuth Client ID</h4><p>Opsional - isi untuk aktifkan Discord OAuth nyata. Buat di <a href="https://discord.com/developers/applications" target="_blank" style="color:rgba(255,255,255,.4)">discord.com/developers</a></p></div>
-      </div>
-      <div style="margin-bottom:16px">
-        <input class="auth-input" id="discord-client-id-input" type="text" placeholder="1234567890..." value="${escHtml(localStorage.getItem('mas_discord_client_id')||'')}" style="font-family:monospace;font-size:.8rem;width:100%">
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn btn-solid" onclick="saveDiscordClientId()">Save</button>
-          ${localStorage.getItem('mas_discord_client_id') ? '<button class="btn btn-ghost" onclick="localStorage.removeItem(\'mas_discord_client_id\');renderSettings(\'account\');showNotif(\'info\',\'Cleared\',\'\')">Clear</button>' : ''}
-        </div>
-      </div>
+
       <div class="setting-row" style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
         <div class="setting-info"><h4>Clear Local Data</h4><p>Delete all local data</p></div><button class="btn btn-danger" onclick="clearAllData()">Clear</button>
       </div>
     `,
     roblox: `
       <h3 style="font-size:.9rem;font-weight:700;margin-bottom:14px">Roblox Integration</h3>
+
+      <div class="setting-row"><div class="setting-info"><h4>Roblox User ID</h4><p>Angka ID akun Roblox kamu. Cek di URL profile: roblox.com/users/<b>ID</b>/profile</p></div></div>
+      <div style="margin-bottom:16px">
+        <input class="auth-input" id="rblx-user-id-input" type="text" placeholder="12345678" value="${escHtml(localStorage.getItem('mas_rblx_user_id')||'')}" style="font-family:monospace;font-size:.8rem;width:100%">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-solid" onclick="saveRblxUserId()">Save User ID</button>
+          ${localStorage.getItem('mas_rblx_user_id') ? '<button class="btn btn-danger" onclick="localStorage.removeItem(\'mas_rblx_user_id\');renderSettings(\'roblox\');showNotif(\'info\',\'Cleared\',\'User ID dihapus.\')">Clear</button>' : ''}
+        </div>
+      </div>
 
       <div class="setting-row"><div class="setting-info"><h4>Roblox Open Cloud API Key</h4><p>Diperlukan untuk upload audio ke Roblox. Buat di <a href="https://create.roblox.com/credentials" target="_blank" style="color:rgba(255,255,255,.5)">create.roblox.com/credentials</a></p></div></div>
       <div style="margin-bottom:16px">
@@ -2515,8 +2515,7 @@ function renderSettings(tab) {
           <b style="color:rgba(255,255,255,.5)">Syarat:</b><br>
           - Akun Roblox harus ID Verified<br>
           - API Key perlu permission: <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px">Assets -> Write</code><br>
-          - Format audio: MP3 atau OGG, maks 7 menit / 100MB<br>
-          - Upload via browser bisa kena CORS - gunakan file lokal
+          - Format audio: MP3 atau OGG, maks 7 menit / 100MB
         </div>
       </div>
       <div class="setting-row">
@@ -2633,7 +2632,7 @@ async function publishToRoblox(track, apiKey) {
     const serverRes = await fetch(YT_ENGINE + '/publish/roblox', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: track.originalUrl, title: track.name, apiKey })
+      body: JSON.stringify({ url: track.originalUrl, title: track.name, apiKey, userId: localStorage.getItem('mas_rblx_user_id') || '' })
     });
     const serverData = await serverRes.json();
     if (!serverRes.ok) throw new Error(serverData.error || 'Gagal publish via server.');
@@ -2813,6 +2812,14 @@ async function testCobaltUrl() {
   } catch(e) {
     if (resultEl) { resultEl.style.color = '#e05555'; resultEl.textContent = `[Error] Tidak bisa konek: ${e.message}. Cek URL dan pastikan Railway aktif.`; }
   }
+}
+
+function saveRblxUserId() {
+  const val = document.getElementById('rblx-user-id-input')?.value?.trim();
+  if (!val || isNaN(val)) { showNotif('error', 'Invalid', 'User ID harus berupa angka.'); return; }
+  localStorage.setItem('mas_rblx_user_id', val);
+  renderSettings('roblox');
+  showNotif('success', 'Saved', 'Roblox User ID disimpan.');
 }
 
 function saveRblxApiKey() {
