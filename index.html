@@ -1901,38 +1901,53 @@ async function loadAudioForEditor(url) {
     audioBuffer = null;
     drawFakeWaveform();
 
-    // Set src langsung ke stream - JANGAN pakai crossOrigin, server sudah handle CORS
-    // Mobile browser butuh user gesture buat play, jadi cukup siapkan element-nya
-    streamAudio = new Audio();
-    streamAudio.preload = 'none';
-    streamAudio.src = streamUrl;
+    showNotif('info', 'Mengunduh Audio...', 'Sabar ya, server sedang proses (5-20 detik).');
 
-    // Langsung set ready — tidak tunggu canplay (mobile perlu gesture dulu)
+    streamAudio = new Audio();
+    streamAudio.preload = 'auto'; // server sudah punya Content-Length, auto aman
+
+    // Tunggu canplay atau error
+    const loaded = await new Promise((resolve) => {
+      const onCanPlay = () => { cleanup(); resolve(true); };
+      const onError = () => {
+        const code = streamAudio?.error?.code;
+        cleanup();
+        resolve(code === 1 ? null : false); // null = aborted, false = error
+      };
+      const cleanup = () => {
+        streamAudio.removeEventListener('canplay', onCanPlay);
+        streamAudio.removeEventListener('error', onError);
+      };
+      // Timeout 30 detik — server butuh waktu download
+      const timer = setTimeout(() => { cleanup(); resolve(false); }, 30000);
+      streamAudio.addEventListener('canplay', () => { clearTimeout(timer); onCanPlay(); }, { once: true });
+      streamAudio.addEventListener('error', () => { clearTimeout(timer); onError(); }, { once: true });
+      streamAudio.src = streamUrl;
+      streamAudio.load();
+    });
+
+    if (loaded === null) return; // user aborted / ganti track
+
+    if (loaded === false) {
+      drawFakeWaveform();
+      showNotif('error', 'Gagal Muat Audio', 'Server gagal proses audio. Coba import ulang.');
+      streamAudio = null;
+      return;
+    }
+
+    // Berhasil
+    const dur = streamAudio.duration;
+    if (t && dur && isFinite(dur)) {
+      t.duration = fmtTime(dur);
+      renderTrackList();
+      updateStats();
+    }
     audioBuffer = 'stream';
     pauseOffset = 0;
-
-    // Update durasi kalau berhasil buffer
-    streamAudio.addEventListener('canplay', () => {
-      const dur = streamAudio.duration;
-      if (t && dur && isFinite(dur)) {
-        t.duration = fmtTime(dur);
-        renderTrackList();
-        updateStats();
-      }
-    }, { once: true });
-
-    // Error handler - code 1 = user aborted (normal saat ganti track), skip
-    streamAudio.addEventListener('error', () => {
-      const code = streamAudio?.error?.code;
-      if (code === 1) return;
-      showNotif('error', 'Gagal Putar', 'Audio gagal. Coba klik Play sekali lagi.');
-    }, { once: true });
-
-    showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
+    showNotif('success', 'Siap Diputar', 'Audio siap! Tekan play.');
     return;
   }
 
-  // File lokal: WebAudio API
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   fetch(url).then(r => r.arrayBuffer()).then(buf => audioCtx.decodeAudioData(buf)).then(decoded => {
     audioBuffer = decoded;
