@@ -1887,7 +1887,7 @@ async function loadAudioForEditor(url) {
   if (!url) return;
   const t = tracks[currentTrackIndex];
 
-  // YouTube via YT Engine: pakai blob fetch agar tidak kena CORS block
+  // YouTube via YT Engine
   const isYTStream = url && url.includes(YT_ENGINE);
   if (isYTStream) {
     const ytUrl = t?.originalUrl || '';
@@ -1899,95 +1899,36 @@ async function loadAudioForEditor(url) {
       streamAudio = null;
     }
     audioBuffer = null;
-
-    showNotif('info', 'Memuat Audio YouTube', 'Mengambil audio, mohon tunggu...');
     drawFakeWaveform();
 
-    // === STRATEGI UTAMA: fetch sebagai blob, lalu buat Object URL ===
-    // Ini menghindari CORS cross-origin block pada HTMLAudioElement.src
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
+    // Set src langsung ke stream - JANGAN pakai crossOrigin, server sudah handle CORS
+    // Mobile browser butuh user gesture buat play, jadi cukup siapkan element-nya
+    streamAudio = new Audio();
+    streamAudio.preload = 'none';
+    streamAudio.src = streamUrl;
 
-      const resp = await fetch(streamUrl, {
-        signal: controller.signal,
-        headers: { 'Accept': 'audio/mpeg, audio/*, */*' }
-      });
-      clearTimeout(timeoutId);
+    // Langsung set ready — tidak tunggu canplay (mobile perlu gesture dulu)
+    audioBuffer = 'stream';
+    pauseOffset = 0;
 
-      if (!resp.ok) throw new Error(`Server error ${resp.status}`);
-
-      const blob = await resp.blob();
-      if (!blob || blob.size < 2000) throw new Error('Audio kosong atau terlalu kecil');
-
-      const blobUrl = URL.createObjectURL(blob);
-      streamAudio = new Audio();
-      streamAudio.crossOrigin = 'anonymous';
-      streamAudio.preload = 'auto';
-      streamAudio.controls = false;
-
-      await new Promise((resolve, reject) => {
-        const onCanPlay = () => {
-          cleanup();
-          resolve();
-        };
-        const onError = (e) => {
-          cleanup();
-          reject(new Error('Audio element error: ' + (streamAudio?.error?.message || e.type)));
-        };
-        const cleanup = () => {
-          streamAudio.removeEventListener('canplay', onCanPlay);
-          streamAudio.removeEventListener('error', onError);
-        };
-        streamAudio.addEventListener('canplay', onCanPlay, { once: true });
-        streamAudio.addEventListener('error', onError, { once: true });
-        streamAudio.src = blobUrl;
-        streamAudio.load();
-        // Fallback jika canplay tidak fired dalam 8 detik (blob sudah ada, pasti bisa)
-        setTimeout(() => { cleanup(); resolve(); }, 8000);
-      });
-
-      drawFakeWaveform();
+    // Update durasi kalau berhasil buffer
+    streamAudio.addEventListener('canplay', () => {
       const dur = streamAudio.duration;
-      if (t && dur && isFinite(dur)) { t.duration = fmtTime(dur); renderTrackList(); updateStats(); }
-      audioBuffer = 'stream';
-      pauseOffset = 0;
-      showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
-
-    } catch(err) {
-      // === FALLBACK: coba direct Audio src dengan crossOrigin ===
-      showNotif('info', 'Mencoba streaming langsung...', '');
-      try {
-        if (streamAudio) { try { streamAudio.pause(); streamAudio.src = ''; } catch(e) {} streamAudio = null; }
-
-        streamAudio = new Audio();
-        streamAudio.crossOrigin = 'anonymous';
-        streamAudio.preload = 'auto';
-
-        await new Promise((resolve, reject) => {
-          const onReady = () => { cleanup(); resolve(); };
-          const onErr = () => { cleanup(); reject(new Error('Direct stream gagal')); };
-          const cleanup = () => {
-            streamAudio.removeEventListener('canplay', onReady);
-            streamAudio.removeEventListener('error', onErr);
-          };
-          streamAudio.addEventListener('canplay', onReady, { once: true });
-          streamAudio.addEventListener('error', onErr, { once: true });
-          streamAudio.src = streamUrl;
-          streamAudio.load();
-          setTimeout(() => { cleanup(); resolve(); }, 12000); // 12s fallback
-        });
-
-        drawFakeWaveform();
-        audioBuffer = 'stream';
-        pauseOffset = 0;
-        showNotif('success', 'Siap Diputar', 'Tekan play.');
-      } catch(err2) {
-        drawFakeWaveform();
-        showNotif('error', 'Gagal Muat Audio', 'Pastikan YT Engine online & link YouTube valid. Coba import ulang.');
-        streamAudio = null;
+      if (t && dur && isFinite(dur)) {
+        t.duration = fmtTime(dur);
+        renderTrackList();
+        updateStats();
       }
-    }
+    }, { once: true });
+
+    // Error handler - code 1 = user aborted (normal saat ganti track), skip
+    streamAudio.addEventListener('error', () => {
+      const code = streamAudio?.error?.code;
+      if (code === 1) return;
+      showNotif('error', 'Gagal Putar', 'Audio gagal. Coba klik Play sekali lagi.');
+    }, { once: true });
+
+    showNotif('success', 'Siap Diputar', 'Track YouTube siap! Tekan play.');
     return;
   }
 
