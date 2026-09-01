@@ -1660,56 +1660,7 @@ function isDirectAudioUrl(url) {
 }
 
 // == ENGINE CONFIG ==
-// Public Cobalt instances — gratis, no deploy needed, maintained komunitas
-const COBALT_PUBLIC = [
-  'https://cobalt.tools/api',
-  'https://co.wuk.sh',
-  'https://cobalt.api.kwiatekmiki.com',
-  'https://cobalt.canine.tools',
-  'https://api.cobalt.tools',
-];
-
-// Self-hosted (fallback)
-const COBALT_SELF = (localStorage.getItem('mas_cobalt_url') || 'https://cobalt-production-bee5.up.railway.app').replace(/\/$/, '');
-
-async function resolveCobaltAudio(videoUrl) {
-  const instances = [...COBALT_PUBLIC, COBALT_SELF];
-
-  for (const base of instances) {
-    try {
-      const res = await fetch(base + '/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          url: videoUrl,
-          downloadMode: 'audio',
-          audioFormat: 'mp3',
-          audioBitrate: '128',
-          filenameStyle: 'basic',
-        }),
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!res.ok) continue;
-      const data = await res.json();
-
-      if ((data.status === 'tunnel' || data.status === 'redirect' || data.status === 'stream') && data.url) {
-        console.log('[Cobalt] OK via', base, '| status:', data.status);
-        return { url: data.url, instance: base };
-      }
-      if (data.status === 'picker' && data.picker?.length > 0) {
-        const audio = data.picker.find(p => p.type === 'audio') || data.picker[0];
-        if (audio?.url) return { url: audio.url, instance: base };
-      }
-    } catch(e) {
-      console.warn('[Cobalt] gagal:', base, e.message);
-    }
-  }
-  throw new Error('Semua Cobalt instance tidak bisa diakses. Coba lagi nanti.');
-}
+const YT_ENGINE = 'https://yt-engine-production.up.railway.app';
 
 async function fetchYouTubeMeta(url) {
   const videoId = extractYouTubeId(url);
@@ -1934,25 +1885,54 @@ async function loadAudioForEditor(url) {
   audioBuffer = null;
   drawFakeWaveform();
 
-  // ── YouTube: resolve via Cobalt public instances ──────────────────────────
+  // YouTube: stream via YT Engine (server-side, no CORS issue)
   if (t?.platform === 'youtube') {
     const ytUrl = t.originalUrl || `https://www.youtube.com/watch?v=${t.videoId}`;
-    showNotif('info', 'Memuat Audio...', 'Mengambil stream...');
+    const streamUrl = `${YT_ENGINE}/stream/mp3?url=${encodeURIComponent(ytUrl)}`;
+    showNotif('info', 'Memuat Audio...', 'Server sedang proses audio...');
 
-    let audioUrl = null;
-    try {
-      const result = await resolveCobaltAudio(ytUrl);
-      audioUrl = result.url;
-    } catch(e) {
-      showNotif('error', 'Gagal Muat Audio', e.message);
+    streamAudio = new Audio();
+    streamAudio.preload = 'auto';
+
+    const result = await new Promise(resolve => {
+      const cleanup = () => {
+        streamAudio.removeEventListener('canplay', onOk);
+        streamAudio.removeEventListener('error', onErr);
+      };
+      const onOk  = () => { cleanup(); resolve('ok'); };
+      const onErr = () => { cleanup(); resolve(streamAudio?.error?.code === 1 ? 'abort' : 'err'); };
+      const timer = setTimeout(() => { cleanup(); resolve('timeout'); }, 60000);
+      streamAudio.addEventListener('canplay', () => { clearTimeout(timer); onOk(); }, { once: true });
+      streamAudio.addEventListener('error',   () => { clearTimeout(timer); onErr(); }, { once: true });
+      streamAudio.src = streamUrl;
+      streamAudio.load();
+    });
+
+    if (result === 'abort') return;
+
+    if (result !== 'ok') {
+      drawFakeWaveform();
+      const msg = result === 'timeout'
+        ? 'Server timeout. Cek apakah Railway YT Engine aktif.'
+        : 'Gagal muat audio. Pastikan cookies YouTube sudah diset di Railway.';
+      showNotif('error', 'Gagal Muat Audio', msg);
+      streamAudio = null;
       return;
     }
 
-    await _loadAndPlayStream(audioUrl, t);
+    const dur = streamAudio.duration;
+    if (t && dur && isFinite(dur)) {
+      t.duration = fmtTime(dur);
+      renderTrackList();
+      updateStats();
+    }
+    audioBuffer = 'stream';
+    pauseOffset = 0;
+    showNotif('success', 'Siap Diputar', 'Tekan play!');
     return;
   }
 
-  // ── File lokal: WebAudio API ─────────────────────────────────────────────
+  // File lokal: WebAudio API
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   fetch(url)
     .then(r => r.arrayBuffer())
@@ -1962,70 +1942,9 @@ async function loadAudioForEditor(url) {
       drawWaveform(decoded);
       if (t) { t.duration = fmtTime(decoded.duration); renderTrackList(); updateStats(); }
     })
-    .catch(() => { drawFakeWaveform(); showNotif('error', 'Load Failed', 'Format tidak didukung browser ini.'); });
+    .catch(() => { drawFakeWaveform(); showNotif('error', 'Load Failed', 'Format tidak didukung.'); });
 }
 
-async function _loadAndPlayStream(audioUrl, t) {
-  streamAudio = new Audio();
-  streamAudio.preload = 'auto';
-
-  const result = await new Promise(resolve => {
-    const cleanup = () => {
-      streamAudio.removeEventListener('canplay', onOk);
-      streamAudio.removeEventListener('error', onErr);
-    };
-    const onOk  = () => { cleanup(); resolve('ok'); };
-    const onErr = () => { cleanup(); resolve(streamAudio?.error?.code === 1 ? 'abort' : 'err'); };
-    const timer = setTimeout(() => { cleanup(); resolve('timeout'); }, 25000);
-    streamAudio.addEventListener('canplay', () => { clearTimeout(timer); onOk(); }, { once: true });
-    streamAudio.addEventListener('error',   () => { clearTimeout(timer); onErr(); }, { once: true });
-    streamAudio.src = audioUrl;
-    streamAudio.load();
-  });
-
-  if (result === 'abort') return;
-
-  if (result !== 'ok') {
-    // Cobalt tunnel URL mungkin CORS — coba tanpa crossOrigin dulu sudah, coba resolve ulang
-    if (t?.platform === 'youtube') {
-      showNotif('info', 'Coba ulang...', 'Resolve audio dari instance lain...');
-      try {
-        const retry = await resolveCobaltAudio(t.originalUrl || `https://www.youtube.com/watch?v=${t.videoId}`);
-        streamAudio = new Audio();
-        streamAudio.preload = 'auto';
-        const r2 = await new Promise(resolve => {
-          const cleanup = () => { streamAudio.removeEventListener('canplay', ok); streamAudio.removeEventListener('error', err); };
-          const ok = () => { cleanup(); resolve('ok'); };
-          const err = () => { cleanup(); resolve('err'); };
-          setTimeout(() => { cleanup(); resolve('timeout'); }, 20000);
-          streamAudio.addEventListener('canplay', ok, { once: true });
-          streamAudio.addEventListener('error', err, { once: true });
-          streamAudio.src = retry.url;
-          streamAudio.load();
-        });
-        if (r2 === 'ok') {
-          audioBuffer = 'stream'; pauseOffset = 0;
-          showNotif('success', 'Siap Diputar', 'Tekan play!');
-          return;
-        }
-      } catch(_) {}
-    }
-    drawFakeWaveform();
-    showNotif('error', 'Gagal Muat Audio', 'Audio tidak bisa dimuat. Coba import ulang.');
-    streamAudio = null;
-    return;
-  }
-
-  const dur = streamAudio.duration;
-  if (t && dur && isFinite(dur)) {
-    t.duration = fmtTime(dur);
-    renderTrackList();
-    updateStats();
-  }
-  audioBuffer = 'stream';
-  pauseOffset = 0;
-  showNotif('success', 'Siap Diputar', 'Tekan play!');
-}
 
 function drawWaveform(buffer) {
   const canvas = document.getElementById('waveformCanvas');
@@ -2364,30 +2283,20 @@ async function downloadTrackById(i) {
   const name = (i === currentTrackIndex ? document.getElementById('export-name')?.value : null) || t.name || 'track';
   const fmt = (document.getElementById('export-format')?.value || 'mp3').toLowerCase();
 
-  // YouTube: download via Cobalt public (gratis, no server needed)
+  // YouTube: download via YT Engine (server handle, no CORS)
   if (t.platform === 'youtube' && t.originalUrl) {
-    showNotif('info', 'Menyiapkan Download...', 'Mengambil link via Cobalt...');
-    try {
-      const result = await resolveCobaltAudio(t.originalUrl);
-      showNotif('info', 'Mengunduh...', 'Sedang mengunduh MP3...');
-      const resp = await fetch(result.url);
-      if (!resp.ok) throw new Error('Fetch gagal: ' + resp.status);
-      const blob = await resp.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = name + '.mp3';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-      exportCount++;
-      localStorage.setItem(userKey('exports'), exportCount);
-      try { document.getElementById('stat-exports').textContent = exportCount; } catch(_) {}
-      showNotif('success', 'Download Selesai', '"' + name + '.mp3" berhasil diunduh!');
-    } catch(e) {
-      showNotif('error', 'Download Gagal', 'Cobalt tidak bisa diakses. Coba lagi nanti.');
-    }
+    showNotif('info', 'Download Dimulai', 'File MP3 sedang diunduh...');
+    const dlUrl = `${YT_ENGINE}/download/mp3?url=${encodeURIComponent(t.originalUrl)}&title=${encodeURIComponent(name)}`;
+    const a = document.createElement('a');
+    a.href = dlUrl;
+    a.download = name + '.mp3';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    exportCount++;
+    localStorage.setItem(userKey('exports'), exportCount);
+    try { document.getElementById('stat-exports').textContent = exportCount; } catch(_) {}
+    showNotif('success', 'Download Dimulai', `"${name}.mp3" sedang diunduh!`);
     return;
   }
 
@@ -2718,11 +2627,15 @@ async function publishToRoblox(track, apiKey) {
     const res = await fetch(track.blobData);
     blob = await res.blob();
   } else if (track.platform === 'youtube' && track.originalUrl) {
-    // YouTube: resolve via Cobalt, fetch blob, upload ke Roblox langsung dari browser
-    const cobaltResult = await resolveCobaltAudio(track.originalUrl);
-    const audioResp = await fetch(cobaltResult.url);
-    if (!audioResp.ok) throw new Error('Gagal download audio dari Cobalt: ' + audioResp.status);
-    blob = await audioResp.blob();
+    // YouTube: YT Engine download + upload langsung ke Roblox
+    const serverRes = await fetch(YT_ENGINE + '/publish/roblox', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: track.originalUrl, title: track.name, apiKey, userId: localStorage.getItem('mas_rblx_user_id') || '' })
+    });
+    const serverData = await serverRes.json();
+    if (!serverRes.ok) throw new Error(serverData.error || 'Gagal publish via server.');
+    return serverData.assetId;
   } else if (track.url && track.platform === 'direct') {
     const res = await fetch(track.url);
     if (!res.ok) throw new Error('Gagal fetch audio dari URL.');
